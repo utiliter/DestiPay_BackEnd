@@ -194,7 +194,7 @@ function user_agent()
     $iPhone = strpos($_SERVER['HTTP_USER_AGENT'], "iPhone");
     $iPad = strpos($_SERVER['HTTP_USER_AGENT'], "iPad");
     $android = strpos($_SERVER['HTTP_USER_AGENT'], "Android");
-    // file_put_contents('./public/upload/install_log/agent', $_SERVER['HTTP_USER_AGENT']);
+
     if ($iPad || $iPhone || $iPod) {
         return 2;
     } else if ($android) {

@@ -8,7 +8,7 @@ define('REQUEST_METHOD', $_SERVER['REQUEST_METHOD']);
 checkMethod();
 
 if (!empty($_REQUEST['api_data'])) {
-    $data = json_decode($_REQUEST['api_data'] ?? [], true);
+    $data = base64_decode(json_decode($_REQUEST['api_data'] ?? [], true));
 } else {
     $data = [];
     foreach ($_REQUEST as $key => $value) {
