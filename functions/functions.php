@@ -139,7 +139,7 @@ function randomNumbers($length = 4)
 }
 
 
-function qr_encryption($text, $sec = 120, $key = "Skeleton1")
+function qr_encryption($text, $sec = 120, $key = "DestipaySpin1")
 {
     global $DB;
 
@@ -148,11 +148,11 @@ function qr_encryption($text, $sec = 120, $key = "Skeleton1")
     $time = str_replace(" ", "T", date("Y-m-d H:i:s", time() + $sec));
     $plaintext = $text . "_" . $time;
 
-    $aes = $DB->query("SELECT HEX(AES_ENCRYPT('$plaintext','Skeleton1')) as hex")->fetch_assoc();
+    $aes = $DB->query("SELECT HEX(AES_ENCRYPT('$plaintext','DestipaySpin1')) as hex")->fetch_assoc();
     return base64_encode($aes["hex"]);
 }
 
-function qr_decryption($encoded, $key = "Skeleton1")
+function qr_decryption($encoded, $key = "DestipaySpin1")
 {
     global $DB;
 
