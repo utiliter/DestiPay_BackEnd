@@ -84,8 +84,9 @@ class Users
 
     function __construct()
     {
-        global $DB;
+        global $DB, $response;
         $this->db = $DB;
+
     }
 
     private function load_user()

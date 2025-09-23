@@ -20,20 +20,15 @@ if (!empty($_REQUEST['data'])) {
     $data["action"] = $_REQUEST["action"] ?? "DEFAULT";
 }
 
-
-
-
 switch ($data["module"] ?? "DEFAULT") {
     case 'users':
         require_once 'app/modules/users/users.php';
         break;
 
-
-
-
     default:
         $response->status = 400;
         break;
 }
+
 returnJson();
 
