@@ -55,32 +55,32 @@ switch ($action) {
         checkMethod(["POST"]);
         $users->register();
         break;
-    case 'verify_account':
-        checkMethod(["GET"]);
-        $users->verify_account();
-        break;
-    case 'reset_password':
-        checkMethod(["POST"]);
-        checkUser();
-        $users->reset_password();
-        break;
+    // case 'verify_account':
+    //     checkMethod(["GET"]);
+    //     $users->verify_account();
+    //     break;
+    // case 'reset_password':
+    //     checkMethod(["POST"]);
+    //     checkUser();
+    //     $users->reset_password();
+    //     break;
     case 'create_account':
         checkMethod(["POST"]);
         $users->create_account();
         break;
     case 'edit_account':
         checkMethod(["POST"]);
-        checkUser();
+        // checkUser();
         $users->edit_account();
         break;
     case 'delete_account':
         checkMethod(["GET"]);
         $users->delete_account();
         break;
-    case 'verify_delete_account':
-        checkMethod(["GET"]);
-        $users->verify_delete_account();
-        break;
+    // case 'verify_delete_account':
+    //     checkMethod(["GET"]);
+    //     $users->verify_delete_account();
+    //     break;
 
     case 'get_user_types':
         checkMethod(allowedMethods: ["GET"]);
@@ -488,6 +488,88 @@ class Users
 
     function edit_account()
     {
+        $validateData = validate_edit();
+
+        if (isset($validateData["errors"])) {
+            $this->response->status = 422;
+            return $this->response->data = $validateData;
+        }
+        $userTableName = $this->get_user_table_name((int) $validateData["user_type"]);
+
+
+        $user = $this->checkIfUserExists($validateData["email"], $userTableName);
+
+        if (!$user) {
+            $this->response->status = 404;
+            return $this->response->data = [
+            ];
+        }
+
+
+        $roleId = $this->userRepo->check_if_exist($validateData["role_id"], "users_roles");
+
+        $userType = $this->userRepo->check_if_exist($validateData["user_type"], "users_types");
+
+        if (!$roleId) {
+            $this->response->status = 422;
+            return $this->response->data = ["errors" => ["role_id" => "Role id does not exist"]];
+
+        }
+
+        if (!$userType) {
+            $this->response->status = 422;
+            return $this->response->data = ["errors" => ["user_type" => "User type does not exist"]];
+        }
+
+
+        if (isset($validateData["queen_id"])) {
+            $queen = $this->userRepo->check_if_exist($validateData["queen_id"], "object_queen");
+
+            if (!$queen) {
+                $this->response->status = 422;
+                return $this->response->data = ["errors" => ["user_type" => "Queen does not exist"]];
+            }
+        }
+
+        if (isset($validateData["partner_id"])) {
+            $partner = $this->userRepo->check_if_exist($validateData["partner_id"], "object_partner");
+
+            if (!$partner) {
+                $this->response->status = 422;
+                return $this->response->data = ["errors" => ["user_type" => "Partner does not exist"]];
+            }
+        }
+
+
+
+
+
+        $formatedData =
+            array_diff_key($validateData, ["user_id" => 0]);
+
+
+        $res = DBupdate($userTableName, $formatedData, $validateData["user_id"]);
+
+
+        if ($res) {
+
+            $user = [
+                "id" => $validateData["user_id"],
+                "first_name" => $validateData["first_name"],
+                "last_name" => $validateData["last_name"],
+                "email" => $validateData["email"],
+
+            ];
+
+            $this->response->status = 200;
+            return $this->response->data = [
+                "user" => $user,
+
+            ];
+        }
+
+        $this->response->status = 500;
+        return $this->response->data = [];
 
     }
 

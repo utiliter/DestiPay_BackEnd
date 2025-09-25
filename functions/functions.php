@@ -375,9 +375,9 @@ function checkInjection($data, $exclude = [])
 
 function dd($value)
 {
-    // $trace = debug_backtrace();
-    // $caller = $trace[0];
-    // echo "FILE: " . $caller['file'] . " LINE: " . $caller['line'] . "\n\n";
+    $trace = debug_backtrace();
+    $caller = $trace[0];
+    echo "FILE: " . $caller['file'] . " LINE: " . $caller['line'] . "\n\n";
     echo "<pre>";
     var_dump($value);
     echo "</pre>";
@@ -385,9 +385,9 @@ function dd($value)
 
 function ddd($value)
 {
-    // $trace = debug_backtrace();
-    // $caller = $trace[0];
-    // echo "FILE: " . $caller['file'] . " LINE: " . $caller['line'] . "\n\n";
+    $trace = debug_backtrace();
+    $caller = $trace[0];
+    echo "FILE: " . $caller['file'] . " LINE: " . $caller['line'] . "\n\n";
     echo "<pre>";
     var_dump($value);
     echo "</pre>";
@@ -490,6 +490,7 @@ function DBupdate($table, $data, $id)
         array_unshift($refs, $types);
         call_user_func_array([$stmt, 'bind_param'], $refs);
     }
+
 
     return $stmt->execute();
 

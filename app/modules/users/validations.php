@@ -118,6 +118,40 @@ function validate_register()
 }
 
 
+function validate_edit()
+{
+
+   $inputData = decodeJson();
+   $v = new Validator($inputData);
+
+
+   $v->rule("required", ["user_id", "email", "role_id", "first_name", "last_name", "address", "postal_code", "region", "state", "country_id", "phone", "user_type"]);
+
+
+
+   if (!$v->validate()) {
+      return ["errors" => $v->errors()];
+   }
+
+
+   return [
+      "user_id" => $inputData["user_id"] ?? "",
+      "email" => $inputData["email"] ?? "",
+      "role_id" => $inputData["role_id"] ?? "",
+      "first_name" => $inputData["first_name"] ?? "",
+      "last_name" => $inputData["last_name"] ?? "",
+      "address" => $inputData["address"] ?? "",
+      "postal_code" => $inputData["postal_code"] ?? "",
+      "region" => $inputData["region"] ?? "",
+      "state" => $inputData["state"] ?? "",
+      "country_id" => $inputData["country_id"] ?? "",
+      "phone" => $inputData["phone"] ?? "",
+      "user_type" => $inputData["user_type"] ?? "",
+   ];
+
+
+}
+
 
 
 function validate_create_account()
