@@ -1,9 +1,8 @@
 <?php
-$DB = connectToDB();
+$DB = connectToDB("dev");
 function connectToDB($db = "default")
 {
     global $db_connection;
-
     $charset = $db_connection[$db]["charset"] ?? "";
     $dbhost = $db_connection[$db]["host"] ?? "";
     $dbuser = $db_connection[$db]["username"] ?? "";
