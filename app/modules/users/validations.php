@@ -153,6 +153,28 @@ function validate_edit()
 }
 
 
+function validate_delete()
+{
+
+   $inputData = decodeJson();
+   $v = new Validator($inputData);
+
+
+   $v->rule("required", ["user_id", "user_type"]);
+
+   if (!$v->validate()) {
+      return ["errors" => $v->errors()];
+   }
+
+
+   return [
+      "user_id" => $inputData["user_id"],
+      "user_type" => $inputData["user_type"],
+   ];
+
+}
+
+
 
 function validate_create_account()
 {

@@ -14,10 +14,18 @@ class UserRepo
 
 
 
+   public function check_if_user_exist($id, $table)
+   {
+      $id = (int) $id;
+      $query = "SELECT id FROM $table WHERE id = $id AND is_active = 1 AND deleted_at IS NULL";
+      return $this->db->query($query)->num_rows;
+   }
+
    public function check_if_exist($id, $table)
    {
-      return $this->db->query("SELECT id FROM $table WHERE id = $id")->num_rows;
-
+      $id = (int) $id;
+      $query = "SELECT id FROM $table WHERE id = $id";
+      return $this->db->query($query)->num_rows;
    }
 
 
@@ -33,7 +41,7 @@ class UserRepo
    public function findById($id, $table)
    {
 
-      return $this->db->query("SELECT id,first_name,last_name,email FROM $table  WHERE id = $id")->fetch_assoc();
+      return $this->db->query("SELECT id,first_name,last_name,email FROM $table  WHERE id = $id AND is_active = 1 AND deleted_at IS NULL")->fetch_assoc();
 
 
    }

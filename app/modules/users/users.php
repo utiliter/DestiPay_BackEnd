@@ -9,7 +9,7 @@ include 'UserRepo.php';
 $users = new Users();
 $action = $data['action'] ?? '';
 $users->data = $data;
-checkMethod(["POST", "GET", "PUT"]);
+checkMethod(["POST", "GET", "PUT", "DELETE"]);
 
 
 switch ($action) {
@@ -70,11 +70,30 @@ switch ($action) {
         break;
     case 'edit_account':
         checkMethod(["POST"]);
-        // checkUser();
+        $token =
+            getBearerToken();
+
+
+
+        if (!$token || !verifyToken($token) || !$users->isTokenValid($token)) {
+            $response->status = 401;
+            returnJson();
+        }
         $users->edit_account();
         break;
     case 'delete_account':
-        checkMethod(["GET"]);
+        checkMethod(["DELETE"]);
+
+        $token =
+            getBearerToken();
+
+
+
+        if (!$token || !verifyToken($token) || !$users->isTokenValid($token)) {
+            $response->status = 401;
+            returnJson();
+        }
+
         $users->delete_account();
         break;
     // case 'verify_delete_account':
@@ -332,7 +351,7 @@ class Users
 
         $validateData["password"] = bcrypt($validateData["password"]);
         $validateData["uuid"] = create_guid();
-
+        $validateData["is_active"] = 1;
         $res = dbCreate($userTableName, $validateData);
 
         if ($res) {
@@ -432,6 +451,7 @@ class Users
         }
 
         $validateData["password"] = bcrypt($validateData["password"]);
+        $validateData["is_active"] = 1;
         $validateData["uuid"] = create_guid();
 
         $res = dbCreate($userTableName, $validateData);
@@ -472,7 +492,7 @@ class Users
         return match ($userTypeId) {
             1 => 'users_queen',
             2 => 'users_partners',
-            3 => 'users_visitors',
+            3 => 'users_visitors', default => 'users_visitors',
         };
 
 
@@ -573,10 +593,50 @@ class Users
 
     }
 
-
+    /**
+     * DElete user
+     * @return array|array{errors: array|bool|array{user_id: mixed, user_type: mixed}}
+     */
     function delete_account()
     {
 
+        $validatedData = validate_delete();
+
+        if (isset($validateData["errors"])) {
+            $this->response->status = 422;
+            return $this->response->data = $validatedData;
+        }
+
+
+        $userTableName = $this->get_user_table_name((int) $validatedData["user_type"]);
+
+        $user = $this->userRepo->check_if_user_exist($validatedData["user_id"], $userTableName);
+
+        if (!$user) {
+            $this->response->status = 404;
+            return $this->response->data = [
+            ];
+        }
+
+        $data = [
+
+            "deleted_at" => date("Y-m-d H:i:s"),
+            "is_active" => 0
+        ];
+
+        $res = DBupdate($userTableName, $data, $validatedData["user_id"]);
+
+        if ($res) {
+
+            $this->response->status = 200;
+            return $this->response->data = [
+                "message" => "User deleted successfully",
+
+            ];
+        }
+
+        $this->response->status = 500;
+        return $this->response->data = [];
     }
 
     function verify_delete_account()
@@ -651,7 +711,7 @@ class Users
 
     function checkIfUserExists($email, $table)
     {
-        return $this->db->query("SELECT id FROM $table WHERE email = '$email'")->num_rows;
+        return $this->db->query("SELECT id FROM $table WHERE email = '$email' AND is_active = 1 AND deleted_at IS NULL")->num_rows;
     }
 
 

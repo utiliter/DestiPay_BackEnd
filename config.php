@@ -36,5 +36,5 @@ $db_connection = [
     ,
 
 ];
-define('ALLOWED_REQUESTS', ['POST', 'GET']);
+define('ALLOWED_REQUESTS', ['POST', 'GET', "PUT", "DELETE"]);
 define('JWT_SECRET', "fYkv7CDHRexY/uDaTLLIh8gh4RpCoyYHqapbFiWmCRA=");
