@@ -2,9 +2,7 @@
 
 function bcrypt($input)
 {
-
     return sqlPassword($input);
-
 }
 
 function sqlPassword($input)
@@ -28,4 +26,12 @@ function checkUser()
         $response->status = 401;
         returnJson();
     }
+}
+
+
+
+function formatUserCreate()
+{
+
+
 }

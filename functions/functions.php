@@ -1,4 +1,100 @@
 <?php
+
+use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
+
+function generateToken($user)
+{
+
+    $payload = [
+        'iss' => 'tvoj-domen.com',
+        'aud' => 'tvoj-domen.com',
+        'iat' => time(),
+        'exp' => time() + 3600,        // 1h
+        'data' => [
+            'id' => $user['id'],
+            'first_name' => $user['first_name'],
+            'last_name' => $user['last_name'],
+            'email' => $user['email']
+        ]
+    ];
+
+    $jwt = JWT::encode($payload, JWT_SECRET, 'HS256');
+    return $jwt;
+}
+
+
+function decodeJson()
+{
+    global $response;
+
+    $data = json_decode(file_get_contents("php://input"), true);
+
+
+    if (!$data) {
+
+        $response->status = 400;
+        returnJson();
+    }
+    return $data;
+}
+
+
+function verifyToken($jwt = null)
+{
+
+
+    try {
+        $res = JWT::decode($jwt, new Key(JWT_SECRET, 'HS256'));
+
+        return true;
+    } catch (\Exception $e) {
+        return false;
+    }
+}
+//checj
+function getBearerToken()
+{
+
+    $headers = apache_request_headers();
+
+    if (isset($headers['Authorization'])) {
+        $matches = [];
+        if (preg_match('/Bearer\s(\S+)/', $headers['Authorization'], $matches)) {
+            return $matches[1];
+        }
+    }
+    return null;
+}
+
+
+
+// function getBearerToken()
+// {
+//     $headers = [];
+
+//     if (function_exists('apache_request_headers')) {
+//         $headers = apache_request_headers();
+//     }
+
+
+//     if (!isset($headers['Authorization']) && isset($_SERVER['HTTP_AUTHORIZATION'])) {
+//         $headers['Authorization'] = $_SERVER['HTTP_AUTHORIZATION'];
+//     } elseif (!isset($headers['Authorization']) && isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+//         $headers['Authorization'] = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+//     }
+
+//     if (isset($headers['Authorization'])) {
+//         if (preg_match('/Bearer\s(\S+)/', $headers['Authorization'], $matches)) {
+//             return trim($matches[1]);
+//         }
+//     }
+
+//     // ddd($headers);
+
+
+// }
+
 function returnJson()
 {
     global $DB, $response;
@@ -9,6 +105,10 @@ function returnJson()
     $DB->close();
     exit();
 }
+
+
+
+
 
 function checkRequests()
 {
@@ -52,16 +152,16 @@ function getAuthorizationHeader()
     return $headers ?: null;
 }
 
-function getBearerToken()
-{
-    $headers = getAuthorizationHeader();
-    if (!empty($headers)) {
-        if (preg_match('/Bearer\s(\S+)/', $headers, $matches)) {
-            return $matches[1];
-        }
-    }
-    return null;
-}
+// function getBearerToken()
+// {
+//     $headers = getAuthorizationHeader();
+//     if (!empty($headers)) {
+//         if (preg_match('/Bearer\s(\S+)/', $headers, $matches)) {
+//             return $matches[1];
+//         }
+//     }
+//     return null;
+// }
 
 function createBearerTokenForUser(int $userId): string
 {
@@ -75,12 +175,15 @@ function error($code = 404)
 {
     $errors = [
         200 => "200 OK",
+        201 => "Created",
+
         400 => "400 Bad Request",
         401 => "401 Unauthorized",
         403 => "403 Forbidden",
         404 => "404 Not Found",
         405 => "405 Method Not Allowed",
         408 => "408 Request Timeout",
+        422 => "Unprocessable Entity",
         500 => "500 Internal Server Error",
         502 => "502 Bad Gateway",
         503 => "503 Service Unavailable",
@@ -266,4 +369,179 @@ function checkInjection($data, $exclude = [])
     }
 
     return $data;
+}
+
+
+
+function dd($value)
+{
+    // $trace = debug_backtrace();
+    // $caller = $trace[0];
+    // echo "FILE: " . $caller['file'] . " LINE: " . $caller['line'] . "\n\n";
+    echo "<pre>";
+    var_dump($value);
+    echo "</pre>";
+}
+
+function ddd($value)
+{
+    // $trace = debug_backtrace();
+    // $caller = $trace[0];
+    // echo "FILE: " . $caller['file'] . " LINE: " . $caller['line'] . "\n\n";
+    echo "<pre>";
+    var_dump($value);
+    echo "</pre>";
+    die;
+}
+
+
+
+function dbCreate($table, $data)
+{
+    global $DB;
+    // $data["id"] = 222222222;
+
+    $formatedFields = "(" . implode(",", array_keys($data)) . ")";
+    $count = count(array_keys($data));
+
+    $formatedValuePlaceholder = "(" . implode(",", array_fill(0, $count, "?")) . ")";
+    $q = "INSERT INTO $table $formatedFields VALUES $formatedValuePlaceholder;";
+
+
+    // return $this->query($q, array_values($data));
+
+    // $this->stmt = $this->connection->prepare($query);
+    $stmt = $DB->prepare($q);
+
+
+
+
+
+
+    if ($stmt === false) {
+
+        // $err = date("Y-m-d H:i:s") . " - " . $query;
+        // ddd($err);
+        file_put_contents(LOG_PATH . "errors.txt", $query . PHP_EOL, FILE_APPEND);
+        // throw new \Exception("MySQL error: " . $this->connection->error, 500);
+    }
+
+    $params = array_values($data);
+
+    if (!empty($params)) {
+        $types = "";
+        $refs = [];
+        foreach ($params as $key => $param) {
+            $types .= _gettype($param);
+            $refs[$key] = &$params[$key];
+        }
+
+        array_unshift($refs, $types);
+        call_user_func_array([$stmt, 'bind_param'], $refs);
+    }
+
+    return $stmt->execute();
+
+
+
+
+
+}
+function DBupdate($table, $data, $id)
+{
+    global $DB;
+
+    $str = "";
+
+    foreach ($data as $key => $val) {
+        $str .= "$key = ?,";
+    }
+
+    $str = substr($str, 0, -1);
+
+    $q = "UPDATE $table SET $str WHERE id = $id ;";
+
+
+    $params
+        = array_values($data);
+
+
+    $stmt = $DB->prepare($q);
+
+
+
+    if ($stmt === false) {
+
+        // $err = date("Y-m-d H:i:s") . " - " . $query;
+        // ddd($err);
+        // file_put_contents(LOG_PATH . "errors.txt", $query . PHP_EOL, FILE_APPEND);
+        // throw new \Exception("MySQL error: " . $this->connection->error, 500);
+        // $this->error("Query error: " . $this->connection->error);
+    }
+
+    if (!empty($params)) {
+        $types = "";
+        $refs = [];
+        foreach ($params as $key => $param) {
+            $types .= _gettype($param);
+            $refs[$key] = &$params[$key];
+        }
+
+        array_unshift($refs, $types);
+        call_user_func_array([$stmt, 'bind_param'], $refs);
+    }
+
+    return $stmt->execute();
+
+}
+
+
+
+
+
+
+// function query($query, $params = [])
+// {
+
+//     $this->lastQuery = $query;
+
+
+//     $this->stmt = $this->connection->prepare($query);
+
+//     if ($this->stmt === false) {
+
+//         // $err = date("Y-m-d H:i:s") . " - " . $query;
+//         // ddd($err);
+//         file_put_contents(LOG_PATH . "errors.txt", $query . PHP_EOL, FILE_APPEND);
+//         throw new \Exception("MySQL error: " . $this->connection->error, 500);
+//         $this->error("Query error: " . $this->connection->error);
+//     }
+
+//     if (!empty($params)) {
+//         $types = "";
+//         $refs = [];
+//         foreach ($params as $key => $param) {
+//             $types .= $this->_gettype($param);
+//             $refs[$key] = &$params[$key];
+//         }
+
+//         array_unshift($refs, $types);
+//         call_user_func_array([$this->stmt, 'bind_param'], $refs);
+//     }
+
+//     $this->stmt->execute();
+
+//     // return $this;
+// }
+
+
+function _gettype($var)
+{
+    if (is_string($var))
+        return 's';
+    if (is_float($var))
+        return 'd';
+    if (is_int($var))
+        return 'i';
+    return 'b';
 }
