@@ -88,8 +88,6 @@ switch ($action) {
         $token =
             getBearerToken();
 
-s
-
         if (!$token || !verifyToken($token) || !$users->isTokenValid($token)) {
             $response->status = 401;
             returnJson();
