@@ -24,6 +24,9 @@ switch ($data["module"] ?? "DEFAULT") {
         require_once 'app/modules/users/users.php';
         break;
 
+    case 'settings':
+        require_once 'app/modules/core/settings.php';
+        break;
     default:
         $response->status = 400;
         break;
