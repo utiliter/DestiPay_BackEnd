@@ -222,4 +222,26 @@ function validate_create_account()
 }
 
 
+function validate_send_delete_token()
+{
+
+
+   $v = new Validator($_GET);
+
+
+   $v->rule("required", ["email", "user_type"]);
+
+   if (!$v->validate()) {
+      return ["errors" => $v->errors()];
+   }
+
+
+   return [
+      "email" => $_GET["email"],
+      "user_type" => $_GET["user_type"],
+   ];
+
+}
+
+
 ?>

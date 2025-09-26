@@ -32,10 +32,19 @@ class UserRepo
    public function findByEmail($email, $table)
    {
 
-      return $this->db->query("SELECT id,first_name,last_name,email, password FROM $table  WHERE email = '$email'")->fetch_assoc();
+      return $this->db->query("SELECT id,first_name,last_name,email,user_type, password FROM $table  WHERE email = '$email'")->fetch_assoc();
 
 
    }
+
+   public function emailExists($email, $table)
+   {
+
+      return $this->db->query("SELECT id FROM $table  WHERE email = '$email'")->num_rows;
+
+
+   }
+
 
 
    public function findById($id, $table)

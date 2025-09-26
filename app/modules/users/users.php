@@ -4,6 +4,7 @@
 include 'functions.php';
 include 'validations.php';
 include 'UserRepo.php';
+include 'Mailer.php';
 
 
 $users = new Users();
@@ -55,10 +56,11 @@ switch ($action) {
         checkMethod(["POST"]);
         $users->register();
         break;
-    // case 'verify_account':
-    //     checkMethod(["GET"]);
-    //     $users->verify_account();
-    //     break;
+    case 'verify_account':
+        checkMethod(["GET"]);
+        $users->verify_account();
+        break;
+
     // case 'reset_password':
     //     checkMethod(["POST"]);
     //     checkUser();
@@ -96,10 +98,15 @@ switch ($action) {
 
         $users->delete_account();
         break;
-    // case 'verify_delete_account':
-    //     checkMethod(["GET"]);
-    //     $users->verify_delete_account();
-    //     break;
+    case 'verify_delete_account':
+        checkMethod(["GET"]);
+        $users->verify_delete_account();
+        break;
+
+    case 'send_mail_verify_delete_account':
+        checkMethod(["GET"]);
+        $users->sendVerifyDeleteToken();
+        break;
 
     case 'get_user_types':
         checkMethod(allowedMethods: ["GET"]);
@@ -341,6 +348,14 @@ class Users
         $userTableName = $this->get_user_table_name((int) $validateData["user_type"]);
 
 
+
+        if ($this->userRepo->emailExists($validateData["email"], $userTableName)) {
+            $this->response->status = 422;
+            return $this->response->data = ["errors" => ["email" => "Email already exists"]];
+
+        }
+
+
         $user = $this->checkIfUserExists($validateData["email"], $userTableName);
 
         if ($user) {
@@ -353,6 +368,7 @@ class Users
         $validateData["uuid"] = create_guid();
         $validateData["is_active"] = 1;
         $res = dbCreate($userTableName, $validateData);
+
 
         if ($res) {
 
@@ -367,6 +383,12 @@ class Users
             $token = generateToken($user);
 
             $this->insertUserToken($this->db->insert_id, $token, $validateData["user_type"]);
+
+
+
+            $this->sendVerifyToken($validateData["email"], $userTableName);
+
+
 
 
             $this->response->status = 201;
@@ -386,6 +408,50 @@ class Users
     function verify_account()
     {
 
+        $token = $_GET["token"] ?? null;
+
+        if (!$token) {
+            $this->response->status = 400;
+            return $this->response->data = ["message" => "Invalid or expired token"];
+        }
+
+        $res = $this->findByToken($token);
+
+        if (!$res) {
+            $this->response->status = 400;
+            return $this->response->data = ["message" => "Invalid or expired token"];
+        }
+
+        $userTableName = $this->get_user_table_name((int) $res["user_type"]);
+        $user = $this->userRepo->findByEmail($res["email"], $userTableName);
+
+        $data = ["is_active" => 1];
+        DBupdate($userTableName, $data, $user["id"]);
+
+        $this->deactivateAllVerifyTokens($res["email"], $res["user_type"]);
+
+
+        $this->response->status = 200;
+        return $this->response->data = ["message" => "Account successfully verified"];
+    }
+
+    public function findByToken($token)
+    {
+
+        $date = new DateTime();
+        $now = $date->format('Y-m-d H:i:s');
+
+        return $this->db->query("SELECT * FROM verify_tokens WHERE token = '$token' AND is_active = 1 AND expiration > '$now'")->fetch_assoc();
+    }
+
+
+    public function findByTokenVerifyDelete($token)
+    {
+
+        $date = new DateTime();
+        $now = $date->format('Y-m-d H:i:s');
+
+        return $this->db->query("SELECT * FROM verify_delete_tokens WHERE token = '$token' AND is_active = 1 AND expiration > '$now'")->fetch_assoc();
     }
 
     function reset_password()
@@ -442,6 +508,13 @@ class Users
         $userTableName = $this->get_user_table_name((int) $validateData["user_type"]);
 
 
+        if ($this->userRepo->emailExists($validateData["email"], $userTableName)) {
+            $this->response->status = 422;
+            return $this->response->data = ["errors" => ["email" => "Email already exists"]];
+
+        }
+
+
         $user = $this->checkIfUserExists($validateData["email"], $userTableName);
 
         if ($user) {
@@ -451,8 +524,8 @@ class Users
         }
 
         $validateData["password"] = bcrypt($validateData["password"]);
-        $validateData["is_active"] = 1;
         $validateData["uuid"] = create_guid();
+        $validateData["is_active"] = 1;
 
         $res = dbCreate($userTableName, $validateData);
 
@@ -472,6 +545,9 @@ class Users
 
 
             $this->insertUserToken($this->db->insert_id, $token, $validateData["user_type"]);
+
+            $this->sendVerifyToken($validateData["email"], $userTableName);
+
 
 
             $this->response->status = 201;
@@ -639,10 +715,99 @@ class Users
         return $this->response->data = [];
     }
 
+
+
+    /**
+     * DElete user
+     * @return array|array{errors: array|bool|array{user_id: mixed, user_type: mixed}}
+     */
     function verify_delete_account()
     {
 
+
+        $token = $_GET["token"] ?? null;
+
+        if (!$token) {
+            $this->response->status = 400;
+            return $this->response->data = ["message" => "Invalid or expired token"];
+        }
+
+        $res = $this->findByTokenVerifyDelete($token);
+
+        if (!$res) {
+            $this->response->status = 400;
+            return $this->response->data = ["message" => "Invalid or expired token"];
+        }
+
+        $userTableName = $this->get_user_table_name((int) $res["user_type"]);
+        $user = $this->userRepo->findByEmail($res["email"], $userTableName);
+
+
+        // ddd($user);  
+
+        $data = [
+
+            "deleted_at" => date("Y-m-d H:i:s"),
+            "is_active" => 0
+        ];
+
+        DBupdate($userTableName, $data, $user["id"]);
+
+        if ($res) {
+
+
+            $this->deactivateAllDeleteVerifyTokens($res["email"], $res["user_type"]);
+
+            $this->response->status = 200;
+            return $this->response->data = [
+                "message" => "User successfully deleted",
+
+            ];
+
+
+        }
+
+
     }
+
+
+
+    function handle_verify_delete_account()
+    {
+
+        $token = $_GET["token"] ?? null;
+
+        if (!$token) {
+            $this->response->status = 400;
+            return $this->response->data = ["message" => "Invalid or expired token"];
+        }
+
+        $res = $this->findByTokenVerifyDelete($token);
+
+        if (!$res) {
+            $this->response->status = 400;
+            return $this->response->data = ["message" => "Invalid or expired token"];
+        }
+
+        $userTableName = $this->get_user_table_name((int) $res["user_type"]);
+        $user = $this->userRepo->findByEmail($res["email"], $userTableName);
+
+        $data = ["is_active" => 1];
+        DBupdate($userTableName, $data, $user["id"]);
+
+        $this->deactivateAllDeleteVerifyTokens($res["email"], $res["user_type"]);
+
+
+        $this->response->status = 200;
+        return $this->response->data = ["message" => "Account successfully verified"];
+    }
+
+
+
+
+
+
+
 
     /**
      * Get list of all user types
@@ -667,21 +832,21 @@ class Users
     }
 
 
-    public function isTokenValid($token)
+    function isTokenValid($token)
     {
 
         return $this->db->query("SELECT is_valid FROM tokens_blacklist WHERE token = '$token'")->fetch_assoc()["is_valid"];
 
     }
 
-    public function getTokenId($token)
+    function getTokenId($token)
     {
 
         return $this->db->query("SELECT id FROM tokens_blacklist WHERE token = '$token'")->fetch_assoc();
 
     }
 
-    public function insertUserToken($userId, $token, $userType)
+    function insertUserToken($userId, $token, $userType)
     {
 
         $data = [
@@ -694,6 +859,10 @@ class Users
         return dbCreate("tokens_blacklist", $data);
 
     }
+
+
+
+
 
 
     function invalidUserToken($token)
@@ -715,14 +884,170 @@ class Users
     }
 
 
-    function findByEmail()
-    {
+    // function findByEmail()
+    // {
 
-        return $this->db->query("SELECT email, password FROM  WHERE email = '$email'")->num_rows;
+    //     return $this->db->query("SELECT email, password FROM  WHERE email = '$email'")->num_rows;
+
+
+    // }
+
+
+
+    function sendMail($data)
+    {
+        global $URL;
+
+
+        $mailer = new Mailer();
+
+        $mailData = [
+            "fromMail" => "queen@queen.com",
+            "fromName" => "queen",
+            "userAddress" => $data["email"]
+        ];
+
+        $mailer->mail->setFrom($mailData['fromMail']);
+        $mailer->mail->addAddress($mailData["userAddress"]);
+        $mailer->mail->isHTML(true);
+        $mailer->mail->Subject = 'Your Subject Here';
+        $mailer->mail->Body = 'Verify: <a href="' . $URL . '/DestiPay_BackEnd' . '/?module=users&action=verify_account&token='
+            . $data["token"] . '" target="_blank">Verify account</a>';
+
+        $mailer->mail->send();
 
 
     }
 
+    function sendVerifyDeleteMail($data)
+    {
+        global $URL;
+
+
+        $mailer = new Mailer();
+
+        $mailData = [
+            "fromMail" => "queen@queen.com",
+            "fromName" => "queen",
+            "userAddress" => $data["email"]
+        ];
+
+        $mailer->mail->setFrom($mailData['fromMail']);
+        $mailer->mail->addAddress($mailData["userAddress"]);
+        $mailer->mail->isHTML(true);
+        $mailer->mail->Subject = 'Your Subject Here';
+        $mailer->mail->Body = 'Verify Delete: <a href="' . $URL . '/DestiPay_BackEnd' . '/?module=users&action=verify_delete_account&token='
+            . $data["token"] . '" target="_blank">Verify Deletee</a>';
+
+        $mailer->mail->send();
+
+
+    }
+
+
+    function generateToken(string $email, $userType)
+    {
+
+        $token = bin2hex(random_bytes(32));
+        $date = new DateTime("+30minutes");
+
+        $expiration = $date->format('Y-m-d H:i:s');
+
+        return ["token" => $token, "expiration" => $expiration, "email" => $email, "user_type" => $userType];
+    }
+
+    function deactivateAllPasswordResets(string $email)
+    {
+        return $this->db->query("UPDATE password_resets SET is_active = 0 WHERE email = '$email' AND is_active = 1");
+    }
+
+    function insertToken($data)
+    {
+        return dbCreate("verify_tokens", $data);
+
+
+    }
+
+    function insertDeleteToken($data)
+    {
+        return dbCreate("verify_delete_tokens", $data);
+
+
+    }
+
+    /**
+     * Handle the request for verify token.
+     * Generates a password reset token and sends a reset link to the user's email.
+     */
+    function sendVerifyDeleteToken()
+    {
+
+        $validatedData = validate_send_delete_token();
+
+        if (isset($validateData["errors"])) {
+            $this->response->status = 422;
+            return $this->response->data = $validatedData;
+        }
+
+
+
+        $userTableName = $this->get_user_table_name((int) $validatedData["user_type"]);
+        $userExists = $this->userRepo->findByEmail($validatedData["email"], $userTableName);
+        // ddd($userTableName);
+        if ($userExists) {
+            $this->deactivateAllDeleteVerifyTokens($validatedData["email"], $validatedData["user_type"]);
+            $data = $this->generateToken($validatedData["email"], $userExists["user_type"]);
+
+            $res = $this->insertDeleteToken($data);
+
+            if ($res) {
+                $this->sendVerifyDeleteMail($data);
+
+                $this->response->status = 200;
+                return $this->response->data = [
+                    "message" => "verification email for account deletion has been sent",
+
+                ];
+            }
+        } else {
+
+            return $this->response->status = 404;
+
+
+
+        }
+
+    }
+    function sendVerifyToken($userEmail, $table)
+    {
+
+
+
+        $userExists = $this->userRepo->findByEmail($userEmail, $table);
+
+        if ($userExists) {
+            $this->deactivateAllVerifyTokens($userEmail, $userExists["user_type"]);
+            $data = $this->generateToken($userEmail, $userExists["user_type"]);
+
+            $res = $this->insertToken($data);
+
+            if ($res) {
+                $this->sendMail($data);
+            }
+        }
+
+    }
+
+
+    function deactivateAllVerifyTokens(string $email, $userType)
+    {
+        return $this->db->query("UPDATE verify_tokens SET is_active = 0 WHERE email = '$email' AND is_active = 1 AND user_type = $userType");
+    }
+
+    function deactivateAllDeleteVerifyTokens(string $email, $userType)
+    {
+        return $this->db->query("UPDATE verify_delete_tokens SET is_active = 0 WHERE email = '$email' AND is_active = 1 AND user_type = $userType");
+    }
 
 
 }

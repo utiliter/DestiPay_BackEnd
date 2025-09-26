@@ -11,6 +11,10 @@ class ComposerStaticInit3983fd5536a0a2d770688d4a5bbf1651
         array (
             'Valitron\\' => 9,
         ),
+        'P' => 
+        array (
+            'PHPMailer\\PHPMailer\\' => 20,
+        ),
         'F' => 
         array (
             'Firebase\\JWT\\' => 13,
@@ -21,6 +25,10 @@ class ComposerStaticInit3983fd5536a0a2d770688d4a5bbf1651
         'Valitron\\' => 
         array (
             0 => __DIR__ . '/..' . '/vlucas/valitron/src/Valitron',
+        ),
+        'PHPMailer\\PHPMailer\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/phpmailer/phpmailer/src',
         ),
         'Firebase\\JWT\\' => 
         array (
