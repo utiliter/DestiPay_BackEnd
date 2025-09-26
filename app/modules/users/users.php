@@ -75,21 +75,20 @@ switch ($action) {
         $token =
             getBearerToken();
 
-
-
         if (!$token || !verifyToken($token) || !$users->isTokenValid($token)) {
             $response->status = 401;
             returnJson();
         }
+
         $users->edit_account();
         break;
     case 'delete_account':
-        checkMethod(["DELETE"]);
+        checkMethod(["POST"]);
 
         $token =
             getBearerToken();
 
-
+s
 
         if (!$token || !verifyToken($token) || !$users->isTokenValid($token)) {
             $response->status = 401;
@@ -110,12 +109,34 @@ switch ($action) {
 
     case 'get_user_types':
         checkMethod(allowedMethods: ["GET"]);
+
+
+        $token =
+            getBearerToken();
+
+
+
+        if (!$token || !verifyToken($token) || !$users->isTokenValid($token)) {
+            $response->status = 401;
+            returnJson();
+        }
         $users->get_user_types();
         break;
 
 
     case 'get_user_roles':
         checkMethod(["GET"]);
+
+
+        $token =
+            getBearerToken();
+
+
+
+        if (!$token || !verifyToken($token) || !$users->isTokenValid($token)) {
+            $response->status = 401;
+            returnJson();
+        }
         $users->get_user_roles();
         break;
 
