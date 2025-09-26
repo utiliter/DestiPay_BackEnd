@@ -37,7 +37,7 @@ switch ($action) {
         $users->logout($token);
         break;
     case 'change_password':
-        checkMethod(["POST"]);
+        checkMethod(["PUT"]);
 
         $token =
             getBearerToken();
