@@ -412,17 +412,11 @@ function dbCreate($table, $data)
 
     // $this->stmt = $this->connection->prepare($query);
     $stmt = $DB->prepare($q);
-
-
-
-
-
-
     if ($stmt === false) {
 
         // $err = date("Y-m-d H:i:s") . " - " . $query;
         // ddd($err);
-        file_put_contents(LOG_PATH . "errors.txt", $query . PHP_EOL, FILE_APPEND);
+        // file_put_contents(LOG_PATH . "errors.txt", $q . PHP_EOL, FILE_APPEND);
         // throw new \Exception("MySQL error: " . $this->connection->error, 500);
     }
 
