@@ -1,6 +1,6 @@
 <?php
-// $DB = connectToDB("dev");
-$DB = connectToDB();
+$DB = connectToDB("dev");
+// $DB = connectToDB();
 function connectToDB($db = "default")
 {
     global $db_connection;

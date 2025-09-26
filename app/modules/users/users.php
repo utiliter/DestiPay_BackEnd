@@ -386,7 +386,7 @@ class Users
 
 
 
-            $this->sendVerifyToken($validateData["email"], $userTableName);
+            // $this->sendVerifyToken($validateData["email"], $userTableName);
 
 
 
@@ -546,7 +546,7 @@ class Users
 
             $this->insertUserToken($this->db->insert_id, $token, $validateData["user_type"]);
 
-            $this->sendVerifyToken($validateData["email"], $userTableName);
+            // $this->sendVerifyToken($validateData["email"], $userTableName);
 
 
 
@@ -1001,7 +1001,7 @@ class Users
             $res = $this->insertDeleteToken($data);
 
             if ($res) {
-                $this->sendVerifyDeleteMail($data);
+                // $this->sendVerifyDeleteMail($data);
 
                 $this->response->status = 200;
                 return $this->response->data = [
