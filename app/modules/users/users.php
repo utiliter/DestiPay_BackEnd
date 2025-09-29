@@ -139,7 +139,7 @@ switch ($action) {
         break;
 
 
-    case 'load_user':
+    case 'get_user':
         checkMethod(["GET"]);
 
         $token =
