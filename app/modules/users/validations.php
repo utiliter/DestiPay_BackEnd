@@ -113,6 +113,9 @@ function validate_register()
    $queenId = 1;
 
    $data["queen_id"] = $queenId;
+
+
+
    return $data;
 
 }
@@ -214,6 +217,11 @@ function validate_create_account()
       array_diff_key($v->data(), ["confirm_password" => 0]);
 
    $data["user_type"] = $userType;
+
+   if ($userType == 4) {
+      unset($data["queen_id"]);
+   }
+
 
    return $data;
 

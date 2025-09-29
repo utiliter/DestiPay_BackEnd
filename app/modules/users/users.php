@@ -251,12 +251,14 @@ class Users
         $userExists = $this->userRepo->findByEmail($data['email'], $tableName);
 
         if ($userExists && $userExists["password"] === bcrypt($data['password'])) {
+            // ddd($userExists);
 
             $user = [
-                "id" => $userExists["id"],
+                "id" => (int) $userExists["id"],
                 "first_name" => $userExists["first_name"],
                 "last_name" => $userExists["last_name"],
                 "email" => $userExists["email"],
+                "user_type" => (int) $userExists["user_type"]
             ];
 
             $token = generateToken($user);
@@ -392,10 +394,11 @@ class Users
         if ($res) {
 
             $user = [
-                "id" => (string) $this->db->insert_id,
+                "id" => (int) $this->db->insert_id,
                 "first_name" => $validateData["first_name"],
                 "last_name" => $validateData["last_name"],
                 "email" => $validateData["email"],
+                "user_type" => (int) $validateData["user_type"]
 
             ];
 
@@ -553,10 +556,11 @@ class Users
         if ($res) {
 
             $user = [
-                "id" => (string) $this->db->insert_id,
+                "id" => $this->db->insert_id,
                 "first_name" => $validateData["first_name"],
                 "last_name" => $validateData["last_name"],
                 "email" => $validateData["email"],
+                "user_type" => (int) $validateData["user_type"]
 
             ];
 
@@ -587,7 +591,9 @@ class Users
         return match ($userTypeId) {
             1 => 'users_queen',
             2 => 'users_partners',
-            3 => 'users_visitors', default => 'users_visitors',
+            3 => 'users_visitors',
+            4 => 'users_system',
+            default => 'users_visitors',
         };
 
 
