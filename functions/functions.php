@@ -30,7 +30,6 @@ function decodeJson()
 
     $data = json_decode(file_get_contents("php://input"), true);
 
-
     if (!$data) {
 
         $response->status = 400;
@@ -539,4 +538,21 @@ function _gettype($var)
     if (is_int($var))
         return 'i';
     return 'b';
+}
+
+
+
+function isBearerTokenValid($token)
+{
+    global $DB;
+    return $DB->query("SELECT is_valid FROM tokens_blacklist WHERE token = '$token'")->fetch_assoc()["is_valid"];
+}
+
+
+function checkIfExist($id, $table)
+{
+    global $DB;
+    $id = (int) $id;
+    $query = "SELECT id FROM $table WHERE id = $id";
+    return $DB->query($query)->num_rows;
 }

@@ -19,43 +19,44 @@ switch ($action) {
         checkUser();
         $users->list_users();
         break;
-    case 'login':
-        checkMethod(["POST"]);
-        $users->login();
-        break;
-    case 'logout':
-        checkMethod(["POST"]);
-        $token =
-            getBearerToken();
+    // case 'login':
+    //     checkMethod(["POST"]);
+    //     $users->login();
+    //     break;
+
+    // case 'logout':
+    //     checkMethod(["POST"]);
+    //     $token =
+    //         getBearerToken();
 
 
-        if (!$token || !verifyToken($token) || !$users->isTokenValid($token)) {
-            $response->status = 401;
-            returnJson();
-        }
+    //     if (!$token || !verifyToken($token) || !$users->isTokenValid($token)) {
+    //         $response->status = 401;
+    //         returnJson();
+    //     }
 
-        $users->logout($token);
-        break;
-    case 'change_password':
-        checkMethod(["PUT"]);
+    //     $users->logout($token);
+    //     break;
+    // case 'change_password':
+    //     checkMethod(["PUT"]);
 
-        $token =
-            getBearerToken();
-
-
-
-        if (!$token || !verifyToken($token) || !$users->isTokenValid($token)) {
-            $response->status = 401;
-            returnJson();
-        }
-        $users->change_password();
-        break;
+    //     $token =
+    //         getBearerToken();
 
 
-    case 'register':
-        checkMethod(["POST"]);
-        $users->register();
-        break;
+
+    //     if (!$token || !verifyToken($token) || !$users->isTokenValid($token)) {
+    //         $response->status = 401;
+    //         returnJson();
+    //     }
+    //     $users->change_password();
+    //     break;
+
+
+    // case 'register':
+    //     checkMethod(["POST"]);
+    //     $users->register();
+    //     break;
     case 'verify_account':
         checkMethod(["GET"]);
         $users->verify_account();
@@ -70,31 +71,32 @@ switch ($action) {
         checkMethod(["POST"]);
         $users->create_account();
         break;
-    case 'edit_account':
-        checkMethod(["POST"]);
-        $token =
-            getBearerToken();
+    // case 'edit_account':
+    //     checkMethod(["POST"]);
+    //     $token =
+    //         getBearerToken();
 
-        if (!$token || !verifyToken($token) || !$users->isTokenValid($token)) {
-            $response->status = 401;
-            returnJson();
-        }
+    //     if (!$token || !verifyToken($token) || !$users->isTokenValid($token)) {
+    //         $response->status = 401;
+    //         returnJson();
+    //     }
 
-        $users->edit_account();
-        break;
-    case 'delete_account':
-        checkMethod(["POST"]);
+    //     $users->edit_account();
+    //     break;
 
-        $token =
-            getBearerToken();
+    // case 'delete_account':
+    //     checkMethod(["POST"]);
 
-        if (!$token || !verifyToken($token) || !$users->isTokenValid($token)) {
-            $response->status = 401;
-            returnJson();
-        }
+    //     $token =
+    //         getBearerToken();
 
-        $users->delete_account();
-        break;
+    //     if (!$token || !verifyToken($token) || !$users->isTokenValid($token)) {
+    //         $response->status = 401;
+    //         returnJson();
+    //     }
+
+    //     $users->delete_account();
+    //     break;
     case 'verify_delete_account':
         checkMethod(["GET"]);
         $users->verify_delete_account();
@@ -299,133 +301,132 @@ class Users
     /**
      *  Handle the request to update user's password in the database
      */
-    function change_password()
-    {
+    // function change_password()
+    // {
 
-        $data = validate_change_password();
+    //     $data = validate_change_password();
 
-        if (isset($data["errors"])) {
-            $this->response->status = 422;
-            return $this->response->data = $data;
-        }
-
-
-        $userTableName = $this->get_user_table_name((int) $data["user_type"]);
+    //     if (isset($data["errors"])) {
+    //         $this->response->status = 422;
+    //         return $this->response->data = $data;
+    //     }
 
 
-
-        $userType = $this->userRepo->check_if_exist($data["user_type"], "users_types");
-
-
-        if (!$userType) {
-            $this->response->status = 422;
-            return $this->response->data = ["errors" => ["user_type" => "User type does not exist"]];
-        }
+    //     $userTableName = $this->get_user_table_name((int) $data["user_type"]);
 
 
-        $userExists = $this->userRepo->findById($data["user_id"], $userTableName);
+
+    //     $userType = $this->userRepo->check_if_exist($data["user_type"], "users_types");
 
 
-        if (!$userExists) {
-            $this->response->status = 404;
-            return $this->response->data = [];
-        }
-
-        $formatedData = ["password" => bcrypt($data["password"])];
-
-        $res = DBupdate($userTableName, $formatedData, $data["user_id"]);
+    //     if (!$userType) {
+    //         $this->response->status = 422;
+    //         return $this->response->data = ["errors" => ["user_type" => "User type does not exist"]];
+    //     }
 
 
-        if ($res) {
-            // TODO message
-
-            $this->response->status = 201;
-            return $this->response->data = [
-                "message" => "Password successfully changed"
-            ];
-        }
-
-        return $this->response->data = [];
+    //     $userExists = $this->userRepo->findById($data["user_id"], $userTableName);
 
 
-    }
+    //     if (!$userExists) {
+    //         $this->response->status = 404;
+    //         return $this->response->data = [];
+    //     }
+
+    //     $formatedData = ["password" => bcrypt($data["password"])];
+
+    //     $res = DBupdate($userTableName, $formatedData, $data["user_id"]);
+
+
+    //     if ($res) {
+    //         // TODO message
+
+    //         $this->response->status = 201;
+    //         return $this->response->data = [
+    //             "message" => "Password successfully changed"
+    //         ];
+    //     }
+
+    //     return $this->response->data = [];
+
+
+    // }
 
     /**
      * VISITORS -  Handle the request to create visitor user in the database
      */
-    function register()
-    {
-        $validateData = validate_register();
+    // function register()
+    // {
+    //     $validateData = validate_register();
 
-        if (isset($validateData["queen_id"])) {
-            $queen = $this->userRepo->check_if_exist($validateData["queen_id"], "object_queen");
+    //     if (isset($validateData["queen_id"])) {
+    //         $queen = $this->userRepo->check_if_exist($validateData["queen_id"], "object_queen");
 
-            if (!$queen) {
-                $this->response->status = 422;
-                return $this->response->data = ["errors" => ["user_type" => "Queen does not exist"]];
-            }
-        }
+    //         if (!$queen) {
+    //             $this->response->status = 422;
+    //             return $this->response->data = ["errors" => ["user_type" => "Queen does not exist"]];
+    //         }
+    //     }
 
-        $userTableName = $this->get_user_table_name((int) $validateData["user_type"]);
-
-
-
-        if ($this->userRepo->emailExists($validateData["email"], $userTableName)) {
-            $this->response->status = 422;
-            return $this->response->data = ["errors" => ["email" => "Email already exists"]];
-
-        }
-
-
-        $user = $this->checkIfUserExists($validateData["email"], $userTableName);
-
-        if ($user) {
-            $this->response->status = 422;
-            return $this->response->data = ["errors" => ["email" => "Email already exists"]];
-        }
-
-
-        $validateData["password"] = bcrypt($validateData["password"]);
-        $validateData["uuid"] = create_guid();
-        $validateData["is_active"] = 1;
-        $res = dbCreate($userTableName, $validateData);
-
-
-        if ($res) {
-
-            $user = [
-                "id" => (int) $this->db->insert_id,
-                "first_name" => $validateData["first_name"],
-                "last_name" => $validateData["last_name"],
-                "email" => $validateData["email"],
-                "user_type" => (int) $validateData["user_type"]
-
-            ];
-
-            $token = generateToken($user);
-
-            $this->insertUserToken($this->db->insert_id, $token, $validateData["user_type"]);
+    //     $userTableName = $this->get_user_table_name((int) $validateData["user_type"]);
 
 
 
-            // $this->sendVerifyToken($validateData["email"], $userTableName);
+    //     if ($this->userRepo->emailExists($validateData["email"], $userTableName)) {
+    //         $this->response->status = 422;
+    //         return $this->response->data = ["errors" => ["email" => "Email already exists"]];
+
+    //     }
+
+
+    //     $user = $this->checkIfUserExists($validateData["email"], $userTableName);
+
+    //     if ($user) {
+    //         $this->response->status = 422;
+    //         return $this->response->data = ["errors" => ["email" => "Email already exists"]];
+    //     }
+
+
+    //     $validateData["password"] = bcrypt($validateData["password"]);
+    //     $validateData["uuid"] = create_guid();
+    //     $validateData["is_active"] = 1;
+    //     $res = dbCreate($userTableName, $validateData);
+
+
+    //     if ($res) {
+
+    //         $user = [
+    //             "id" => (int) $this->db->insert_id,
+    //             "first_name" => $validateData["first_name"],
+    //             "last_name" => $validateData["last_name"],
+    //             "email" => $validateData["email"],
+    //             "user_type" => (int) $validateData["user_type"]
+
+    //         ];
+
+    //         $token = generateToken($user);
+
+    //         $this->insertUserToken($this->db->insert_id, $token, $validateData["user_type"]);
 
 
 
 
-            $this->response->status = 201;
-            return $this->response->data = [
-                "user" => $user,
-                "token" => $token
-            ];
-        }
-
-        $this->response->status = 500;
-        return $this->response->data = [];
 
 
 
-    }
+    //         $this->response->status = 201;
+    //         return $this->response->data = [
+    //             "user" => $user,
+    //             "token" => $token
+    //         ];
+    //     }
+
+    //     $this->response->status = 500;
+    //     return $this->response->data = [];
+
+
+
+    // }
 
     function verify_account()
     {
@@ -607,92 +608,92 @@ class Users
 
 
 
-    function edit_account()
-    {
-        $validateData = validate_edit();
+    // function edit_account()
+    // {
+    //     $validateData = validate_edit();
 
-        if (isset($validateData["errors"])) {
-            $this->response->status = 422;
-            return $this->response->data = $validateData;
-        }
-        $userTableName = $this->get_user_table_name((int) $validateData["user_type"]);
-
-
-        $user = $this->checkIfUserExists($validateData["email"], $userTableName);
-
-        if (!$user) {
-            $this->response->status = 404;
-            return $this->response->data = [
-            ];
-        }
+    //     if (isset($validateData["errors"])) {
+    //         $this->response->status = 422;
+    //         return $this->response->data = $validateData;
+    //     }
+    //     $userTableName = $this->get_user_table_name((int) $validateData["user_type"]);
 
 
-        $roleId = $this->userRepo->check_if_exist($validateData["role_id"], "users_roles");
+    //     $user = $this->checkIfUserExists($validateData["email"], $userTableName);
 
-        $userType = $this->userRepo->check_if_exist($validateData["user_type"], "users_types");
-
-        if (!$roleId) {
-            $this->response->status = 422;
-            return $this->response->data = ["errors" => ["role_id" => "Role id does not exist"]];
-
-        }
-
-        if (!$userType) {
-            $this->response->status = 422;
-            return $this->response->data = ["errors" => ["user_type" => "User type does not exist"]];
-        }
+    //     if (!$user) {
+    //         $this->response->status = 404;
+    //         return $this->response->data = [
+    //         ];
+    //     }
 
 
-        if (isset($validateData["queen_id"])) {
-            $queen = $this->userRepo->check_if_exist($validateData["queen_id"], "object_queen");
+    //     $roleId = $this->userRepo->check_if_exist($validateData["role_id"], "users_roles");
 
-            if (!$queen) {
-                $this->response->status = 422;
-                return $this->response->data = ["errors" => ["user_type" => "Queen does not exist"]];
-            }
-        }
+    //     $userType = $this->userRepo->check_if_exist($validateData["user_type"], "users_types");
 
-        if (isset($validateData["partner_id"])) {
-            $partner = $this->userRepo->check_if_exist($validateData["partner_id"], "object_partner");
+    //     if (!$roleId) {
+    //         $this->response->status = 422;
+    //         return $this->response->data = ["errors" => ["role_id" => "Role id does not exist"]];
 
-            if (!$partner) {
-                $this->response->status = 422;
-                return $this->response->data = ["errors" => ["user_type" => "Partner does not exist"]];
-            }
-        }
+    //     }
+
+    //     if (!$userType) {
+    //         $this->response->status = 422;
+    //         return $this->response->data = ["errors" => ["user_type" => "User type does not exist"]];
+    //     }
 
 
+    //     if (isset($validateData["queen_id"])) {
+    //         $queen = $this->userRepo->check_if_exist($validateData["queen_id"], "object_queen");
+
+    //         if (!$queen) {
+    //             $this->response->status = 422;
+    //             return $this->response->data = ["errors" => ["user_type" => "Queen does not exist"]];
+    //         }
+    //     }
+
+    //     if (isset($validateData["partner_id"])) {
+    //         $partner = $this->userRepo->check_if_exist($validateData["partner_id"], "object_partner");
+
+    //         if (!$partner) {
+    //             $this->response->status = 422;
+    //             return $this->response->data = ["errors" => ["user_type" => "Partner does not exist"]];
+    //         }
+    //     }
 
 
 
-        $formatedData =
-            array_diff_key($validateData, ["user_id" => 0]);
 
 
-        $res = DBupdate($userTableName, $formatedData, $validateData["user_id"]);
+    //     $formatedData =
+    //         array_diff_key($validateData, ["user_id" => 0]);
 
 
-        if ($res) {
+    //     $res = DBupdate($userTableName, $formatedData, $validateData["user_id"]);
 
-            $user = [
-                "id" => $validateData["user_id"],
-                "first_name" => $validateData["first_name"],
-                "last_name" => $validateData["last_name"],
-                "email" => $validateData["email"],
 
-            ];
+    //     if ($res) {
 
-            $this->response->status = 200;
-            return $this->response->data = [
-                "user" => $user,
+    //         $user = [
+    //             "id" => $validateData["user_id"],
+    //             "first_name" => $validateData["first_name"],
+    //             "last_name" => $validateData["last_name"],
+    //             "email" => $validateData["email"],
 
-            ];
-        }
+    //         ];
 
-        $this->response->status = 500;
-        return $this->response->data = [];
+    //         $this->response->status = 200;
+    //         return $this->response->data = [
+    //             "user" => $user,
 
-    }
+    //         ];
+    //     }
+
+    //     $this->response->status = 500;
+    //     return $this->response->data = [];
+
+    // }
 
     /**
      * DElete user

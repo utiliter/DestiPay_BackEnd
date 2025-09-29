@@ -1,4 +1,7 @@
 <?php
+
+use App\Core\Router;
+
 session_start();
 $response = new stdClass();
 $response->status = 200;
@@ -17,11 +20,37 @@ if (!empty($_REQUEST['api_data'])) {
     }
     $data["module"] = $_REQUEST["module"] ?? "DEFAULT";
     $data["action"] = $_REQUEST["action"] ?? "DEFAULT";
+
+
+
+
 }
+
+
+$router = new Router();
+
+$filePath = "app/Modules/" . $data["module"] . "/routes.php";
+
+
+// if (file_exists($filePath)) {
+//     ddd("POSTOJI");
+
+//     require_once $path;
+
+//     $router->reslove($data[$module], $action, );
+
+
+// } else {
+
+//     $response->status = 400;
+
+// }
+
 
 switch ($data["module"] ?? "DEFAULT") {
     case 'users':
-        require_once 'app/modules/users/users.php';
+        require_once 'app/modules/' . $data["module"] . '/routes.php';
+
         break;
 
     case 'settings':
@@ -29,7 +58,10 @@ switch ($data["module"] ?? "DEFAULT") {
         break;
     default:
         $response->status = 400;
+        returnJson();
         break;
 }
 
+
+$router->reslove($data["module"], $data["action"], REQUEST_METHOD);
 returnJson();

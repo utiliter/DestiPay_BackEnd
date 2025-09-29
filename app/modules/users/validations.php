@@ -1,10 +1,13 @@
 <?php
+namespace App\Modules\Users;
+
 use Valitron\Validator;
 
 
 
 function validate_login()
 {
+
    $inputData = decodeJson();
 
    $v = new Validator($inputData);
@@ -56,8 +59,10 @@ function validate_load_user()
 }
 
 
-function validate_change_password()
+function validateChangePassword()
 {
+   global $DB;
+
    $inputData = decodeJson();
    $v = new Validator($inputData);
 
@@ -73,7 +78,20 @@ function validate_change_password()
       return ["errors" => $v->errors()];
    }
 
+
    $data = $v->data();
+
+   // $userTableName = getUserTableName((int) $data["user_type"]);
+
+   $userType = checkIfExist($data["user_type"], "users_types");
+
+
+   if (!$userType) {
+      // $res->response->status = 422;
+
+      return ["errors" => ["user_type" => "User type does not exist"]];
+   }
+
 
    $data["user_type"] = $userType;
 
@@ -82,7 +100,7 @@ function validate_change_password()
 
 
 
-function validate_register()
+function validateRegister()
 {
    $inputData = decodeJson();
    // ddd($inputData)
@@ -99,9 +117,13 @@ function validate_register()
 
 
 
+
+
+
    if (!$v->validate()) {
       return ["errors" => $v->errors()];
    }
+
 
 
    $data =
@@ -121,7 +143,7 @@ function validate_register()
 }
 
 
-function validate_edit()
+function validateEdit()
 {
 
    $inputData = decodeJson();
@@ -156,7 +178,7 @@ function validate_edit()
 }
 
 
-function validate_delete()
+function validateDelete()
 {
 
    $inputData = decodeJson();

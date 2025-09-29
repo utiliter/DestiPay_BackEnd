@@ -124,6 +124,9 @@ ExpiresByType font/woff "access plus 1 month"
     </IfModule>
 
     RewriteEngine On
+    RewriteCond %{HTTP:Authorization} ^(.*)
+    RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
+
     RewriteCond %{HTTP_HOST} ^www\.(.*)$ [NC]
     RewriteRule ^(.*)$ http://%1/$1 [R=301,L]
 	#RewriteCond %{HTTPS} !=on
@@ -170,8 +173,7 @@ ExpiresByType font/woff "access plus 1 month"
         RewriteCond %{QUERY_STRING} (;|<|>|'|"|\)|%0A|%0D|%22|%27|%3C|%3E|%00).*(/\*|union|select|insert|drop|delete|update|cast|create|char|convert|alter|declare|order|script|set|md5|benchmark|encode) [NC,OR]
         RewriteCond %{QUERY_STRING} (sp_executesql) [NC]
         RewriteRule ^(.*)$ - [F,L]
-       RewriteCond %{HTTP:Authorization} ^(.*)
-       RewriteRule .* - [e=HTTP_AUTHORIZATION:%1]
+    
 
    
 

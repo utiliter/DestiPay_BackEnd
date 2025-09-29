@@ -1,5 +1,7 @@
 <?php
 
+namespace App\Modules\Users;
+
 class UserRepo
 {
 
@@ -55,6 +57,19 @@ class UserRepo
 
    }
 
+
+   function checkIfUserExists($email, $table)
+   {
+      return $this->db->query("SELECT id FROM $table WHERE email = '$email' AND is_active = 1 AND deleted_at IS NULL")->num_rows;
+   }
+
+
+   function getBearerTokenId($token)
+   {
+
+      return $this->db->query("SELECT id FROM tokens_blacklist WHERE token = '$token'")->fetch_assoc();
+
+   }
 }
 
 

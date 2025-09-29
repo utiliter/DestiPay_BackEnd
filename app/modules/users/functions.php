@@ -1,5 +1,5 @@
 <?php
-
+namespace App\Modules\Users;
 function bcrypt($input)
 {
     return sqlPassword($input);
@@ -27,6 +27,23 @@ function checkUser()
         returnJson();
     }
 }
+
+
+
+
+function getUserTableName($userTypeId)
+{
+    return match ($userTypeId) {
+        1 => 'users_queen',
+        2 => 'users_partners',
+        3 => 'users_visitors',
+        5 => "users_system",
+        default => 'users_visitors',
+    };
+
+
+}
+
 
 
 
