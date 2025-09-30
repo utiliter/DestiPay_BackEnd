@@ -83,11 +83,9 @@ function validateChangePassword()
 
    // $userTableName = getUserTableName((int) $data["user_type"]);
 
-   $userType = checkIfExist($data["user_type"], "users_types");
 
 
-   if (!$userType) {
-      // $res->response->status = 422;
+   if (!checkIfExist($data["user_type"], "users_types")) {
 
       return ["errors" => ["user_type" => "User type does not exist"]];
    }
@@ -159,6 +157,25 @@ function validateEdit()
    }
 
 
+   if (!checkIfExist($inputData["role_id"], "users_roles")) {
+      return ["errors" => ["role_id" => "Role id does not exist"]];
+
+   }
+
+   if (!checkIfExist($inputData["user_type"], "users_types")) {
+      return ["errors" => ["user_type" => "User type does not exist"]];
+   }
+
+
+   if (isset($inputData["queen_id"])) {
+
+      if (!checkIfExist($inputData["queen_id"], "object_queen")) {
+         return ["errors" => ["queen_id" => "Queen does not exist"]];
+      }
+   }
+
+
+
    return [
       "user_id" => $inputData["user_id"] ?? "",
       "email" => $inputData["email"] ?? "",
@@ -201,7 +218,7 @@ function validateDelete()
 
 
 
-function validate_create_account()
+function validateCreateAccount()
 {
    $inputData = decodeJson();
 
@@ -234,6 +251,26 @@ function validate_create_account()
    if (!$v->validate()) {
       return ["errors" => $v->errors()];
    }
+
+
+   if (!checkIfExist($inputData["role_id"], "users_roles")) {
+      return ["errors" => ["role_id" => "Role id does not exist"]];
+
+   }
+
+   if (!checkIfExist($inputData["user_type"], "users_types")) {
+      return ["errors" => ["user_type" => "User type does not exist"]];
+   }
+
+
+   if (isset($inputData["queen_id"])) {
+      $queen = checkIfExist($inputData["queen_id"], "object_queen");
+
+      if (!$queen) {
+         return ["errors" => ["queen_id" => "Queen does not exist"]];
+      }
+   }
+
 
    $data =
       array_diff_key($v->data(), ["confirm_password" => 0]);

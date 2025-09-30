@@ -7,6 +7,7 @@ use Exception;
 use function App\Modules\Users\bcrypt;
 use function App\Modules\Users\getUserTableName;
 use function App\Modules\Users\validateChangePassword;
+use function App\Modules\Users\validateCreateAccount;
 use function App\Modules\Users\validateDelete;
 use function App\Modules\Users\validateEdit;
 
@@ -30,6 +31,92 @@ class UserController
 
       ddd("from list");
    }
+
+
+
+   /**
+    *  Handle the request to create a new user from the app
+    */
+   function create_account()
+   {
+      $validateData = validateCreateAccount();
+      if (isset($validateData["errors"])) {
+         $this->response->status = 422;
+         return $this->response->data = $validateData;
+      }
+
+
+
+      if (isset($validateData["partner_id"])) {
+         $partner = $this->user->repo->checkIfExist($validateData["partner_id"], "object_partner");
+
+         if (!$partner) {
+            $this->response->status = 422;
+            return $this->response->data = ["errors" => ["user_type" => "Partner does not exist"]];
+         }
+      }
+
+      $userTableName = getUserTableName((int) $validateData["user_type"]);
+
+      if ($this->user->repo->emailExists($validateData["email"], $userTableName)) {
+         $this->response->status = 422;
+         return $this->response->data = ["errors" => ["email" => "Email already exists"]];
+
+      }
+
+
+      $user = $this->user->repo->checkIfUserExists($validateData["email"], $userTableName);
+
+      if ($user) {
+         $this->response->status = 422;
+         return $this->response->data = ["errors" => ["email" => "Email already exists"]];
+
+      }
+
+      $validateData["password"] = bcrypt($validateData["password"]);
+      $validateData["uuid"] = create_guid();
+      $validateData["is_active"] = 1;
+
+      $res = dbCreate($userTableName, $validateData);
+
+
+
+      if ($res) {
+
+         $user = [
+            "id" => $this->db->insert_id,
+            "first_name" => $validateData["first_name"],
+            "last_name" => $validateData["last_name"],
+            "email" => $validateData["email"],
+            "user_type" => (int) $validateData["user_type"]
+
+         ];
+
+         $token = generateToken($user);
+
+
+         $this->user->insertUserToken($this->db->insert_id, $token, $validateData["user_type"]);
+
+         // $this->sendVerifyToken($validateData["email"], $userTableName);
+
+
+
+         $this->response->status = 201;
+         return $this->response->data = [
+            "user" => $user,
+            "token" => $token
+         ];
+      }
+
+      $this->response->status = 500;
+      return $this->response->data = [];
+   }
+
+
+
+
+
+
 
 
    /**
@@ -89,12 +176,15 @@ class UserController
     */
    function edit_account()
    {
+
       $validateData = validateEdit();
 
       if (isset($validateData["errors"])) {
          $this->response->status = 422;
          return $this->response->data = $validateData;
       }
+
+
       $userTableName = getUserTableName((int) $validateData["user_type"]);
 
 
@@ -108,30 +198,6 @@ class UserController
       }
 
 
-      $roleId = checkIfExist($validateData["role_id"], "users_roles");
-
-      $userType = checkIfExist($validateData["user_type"], "users_types");
-
-      if (!$roleId) {
-         $this->response->status = 422;
-         return $this->response->data = ["errors" => ["role_id" => "Role id does not exist"]];
-
-      }
-
-      if (!$userType) {
-         $this->response->status = 422;
-         return $this->response->data = ["errors" => ["user_type" => "User type does not exist"]];
-      }
-
-
-      if (isset($validateData["queen_id"])) {
-         $queen = checkIfExist($validateData["queen_id"], "object_queen");
-
-         if (!$queen) {
-            $this->response->status = 422;
-            return $this->response->data = ["errors" => ["user_type" => "Queen does not exist"]];
-         }
-      }
 
       if (isset($validateData["partner_id"])) {
          $partner = checkIfExist($validateData["partner_id"], "object_partner");
@@ -143,9 +209,9 @@ class UserController
       }
 
 
-
       $formatedData =
          array_diff_key($validateData, ["user_id" => 0]);
+
 
 
       $res = DBupdate($userTableName, $formatedData, $validateData["user_id"]);
@@ -158,7 +224,7 @@ class UserController
             "first_name" => $validateData["first_name"],
             "last_name" => $validateData["last_name"],
             "email" => $validateData["email"],
-            "user_type" => $userType
+            "user_type" => $validateData["user_type"]
 
          ];
 
@@ -176,10 +242,11 @@ class UserController
 
 
 
-
+   /**
+    *  Handle the request to delete the user from the database
+    */
    public function delete_account()
    {
-
 
       $validatedData = validateDelete();
 
@@ -231,9 +298,7 @@ class UserController
    {
 
       $data = $this->db->query("SELECT * FROM users_roles")->fetch_all(MYSQLI_ASSOC);
-      // throw new Exception();
 
-      // ddd($data);
 
       return $this->response->data = $data;
    }

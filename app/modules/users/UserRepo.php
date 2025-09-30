@@ -30,6 +30,15 @@ class UserRepo
       return $this->db->query($query)->num_rows;
    }
 
+   public function checkIfExist($id, $table)
+   {
+      $id = (int) $id;
+      $query = "SELECT id FROM $table WHERE id = $id";
+      return $this->db->query($query)->num_rows;
+   }
+
+
+
 
    public function findByEmail($email, $table)
    {

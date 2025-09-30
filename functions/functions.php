@@ -554,5 +554,5 @@ function checkIfExist($id, $table)
     global $DB;
     $id = (int) $id;
     $query = "SELECT id FROM $table WHERE id = $id";
-    return $DB->query($query)->num_rows;
+    return (bool) $DB->query($query)->num_rows;
 }
