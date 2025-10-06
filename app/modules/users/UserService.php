@@ -17,17 +17,14 @@ class UserService
 
    public function insertUserBearerToken($userId, $token, $userType, $queenId)
    {
-
       $data = [
          "user_id" => $userId,
          "bearer_token" => $token,
          "user_type" => $userType,
          "queen_id" => $queenId
-
       ];
 
       return dbCreate("users_tokens", $data);
-
    }
 
 
@@ -170,18 +167,6 @@ class UserService
       return ["token" => $token, "expiration" => $expiration, "email" => $email, "user_type" => $userType];
    }
 
-
-
-
-   // public function findToken($token, $table)
-//    {
-
-
-   //       $now = getNowDatetime();
-
-
-   // $this->repo->findToken($token)
-//    }
 
 }
 ?>

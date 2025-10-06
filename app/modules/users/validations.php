@@ -149,10 +149,7 @@ function validateRegister()
 
    }
 
-
-
    return $data;
-
 }
 
 

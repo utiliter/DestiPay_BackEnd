@@ -15,21 +15,6 @@ class UserRepo
    }
 
 
-
-   public function check_if_user_exist($id, $table)
-   {
-      $id = (int) $id;
-      $query = "SELECT id FROM $table WHERE id = $id AND is_active = 1 AND deleted_at IS NULL";
-      return $this->db->query($query)->num_rows;
-   }
-
-   public function check_if_exist($id, $table)
-   {
-      $id = (int) $id;
-      $query = "SELECT id FROM $table WHERE id = $id";
-      return $this->db->query($query)->num_rows;
-   }
-
    public function checkIfExist($id, $table)
    {
       $id = (int) $id;
@@ -44,7 +29,6 @@ class UserRepo
    {
 
       if ($table === "users_partners") {
-
          return $this->db->query("SELECT id,first_name,last_name,email,user_type,is_active, password FROM $table  WHERE email = '$email'")->fetch_assoc();
       }
 
@@ -54,10 +38,7 @@ class UserRepo
 
    public function emailExists($email, $table)
    {
-
       return $this->db->query("SELECT id FROM $table  WHERE email = '$email'")->num_rows;
-
-
    }
 
 
@@ -104,7 +85,7 @@ class UserRepo
    public function findUserBearerTokenId($userId, $userType)
    {
 
-      return $this->db->query("SELECT id FROM users_tokens WHERE user_id = $userId AND user_type = $userType  ")->fetch_assoc();
+      return $this->db->query("SELECT id FROM users_tokens WHERE user_id = $userId AND user_type = $userType")->fetch_assoc();
    }
 
 

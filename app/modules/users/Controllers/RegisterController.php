@@ -39,7 +39,7 @@ class RegisterController
 
 
       if (isset($validateData["queen_id"])) {
-         $queen = $this->user->repo->check_if_exist($validateData["queen_id"], "object_queen");
+         $queen = $this->user->repo->checkIfExist($validateData["queen_id"], "object_queen");
 
          if (!$queen) {
             $this->response->status = 422;
