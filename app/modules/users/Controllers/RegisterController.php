@@ -1,6 +1,7 @@
 <?php
 namespace App\Modules\Users\Controllers;
 
+use App\Modules\Users\Mails\VerifyAccountMail;
 use App\Modules\Users\UserService;
 
 use function App\Modules\Users\bcrypt;
@@ -31,6 +32,12 @@ class RegisterController
    {
       $validateData = validateRegister();
 
+      if (isset($validateData["errors"])) {
+         $this->response->status = 422;
+         return $this->response->data = $validateData;
+      }
+
+
       if (isset($validateData["queen_id"])) {
          $queen = $this->user->repo->check_if_exist($validateData["queen_id"], "object_queen");
 
@@ -40,14 +47,13 @@ class RegisterController
          }
       }
 
-      $userTableName = getUserTableName((int) $validateData["user_type"]);
 
+      $userTableName = getUserTableName((int) $validateData["user_type"]);
 
 
       if ($this->user->repo->emailExists($validateData["email"], $userTableName)) {
          $this->response->status = 422;
          return $this->response->data = ["errors" => ["email" => "Email already exists"]];
-
       }
 
 
@@ -76,30 +82,60 @@ class RegisterController
 
          ];
 
-         $token = generateToken($user);
 
-         $this->user->insertUserToken($this->db->insert_id, $token, $validateData["user_type"]);
-
-
-         // $this->sendVerifyToken($validateData["email"], $userTableName);
-
-
+         // TODO hendlati kada email ne prode
+         $this->user->sendVerifyToken($validateData["email"], $userTableName);
 
 
          $this->response->status = 201;
          return $this->response->data = [
             "user" => $user,
-            "token" => $token
+            "message" => "Please check your email to verify your account."
          ];
       }
 
       $this->response->status = 500;
       return $this->response->data = [];
 
-
-
    }
 
+
+
+   function verify_account()
+   {
+
+      $token = $_GET["token"] ?? null;
+
+      if (!$token) {
+         $this->response->status = 400;
+         return $this->response->data = ["message" => "Invalid or expired token"];
+      }
+
+      $res = $this->user->repo->findToken($token, "log_users_verify_tokens");
+
+      if (!$res) {
+         $this->response->status = 400;
+         return $this->response->data = ["message" => "Invalid or expired token"];
+      }
+
+      $userTableName = getUserTableName((int) $res["user_type"]);
+
+
+      $user = $this->user->repo->findByEmail($res["email"], $userTableName);
+
+      $data = [
+         "is_active" => 1,
+         "verified_at" => getNowDatetime()
+      ];
+
+      DBupdate($userTableName, $data, $user["id"]);
+
+
+      $this->user->repo->deactivateAllVerifyTokens($res["email"], $res["user_type"], "log_users_verify_tokens");
+
+      $this->response->status = 200;
+      return $this->response->data = ["message" => "Account successfully verified"];
+   }
 
 
 }

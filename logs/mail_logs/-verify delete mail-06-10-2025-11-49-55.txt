@@ -1,0 +1,5 @@
+
+      To: petar@pet1.dcom
+      From: test@test.com
+      Subject: Verify Delete
+      Content: Please verify delete, <a href="http://localhost/DestiPay_BackEnd/?module=users&action=delete_account&token=cb982156fe08354642e2732173d8ad81cad7d972ae88ee5ef466e0c20cf59c47" target="_blank">Verify account</a>

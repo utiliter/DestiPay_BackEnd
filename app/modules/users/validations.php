@@ -24,10 +24,10 @@ function validate_login()
    $data = $v->data();
 
    $VISITOR_TYPE_ID = 3;
-   $data["user_type"] = empty($inputData["user_type"]) ? $VISITOR_TYPE_ID : $inputData["user_type"];
+   $data["user_type"] = empty($inputData["user_type"]) ? $VISITOR_TYPE_ID : (int) $inputData["user_type"];
+
+
    return $data;
-
-
 
 }
 
@@ -101,7 +101,6 @@ function validateChangePassword()
 function validateRegister()
 {
    $inputData = decodeJson();
-   // ddd($inputData)
    $v = new Validator($inputData);
 
    $v->rule("required", ["email", "password", "confirm_password", "first_name", "last_name", "address", "postal_code", "region", "state", "country_id", "phone"]);
@@ -111,11 +110,14 @@ function validateRegister()
    $v->rule("equals", "confirm_password", "password")->label("Confirm password");
    $v->rule("lengthMin", "password", 6);
 
-   $userTypeIdVisitor = 3;
+   $VISITOR_TYPE_ID = 3;
+   $data["user_type"] = empty($inputData["user_type"]) ? $VISITOR_TYPE_ID : $inputData["user_type"];
 
 
+   if ((int) $data["user_type"] === 2) {
+      $v->rule("required", fields: "partner_id");
 
-
+   }
 
 
    if (!$v->validate()) {
@@ -123,16 +125,29 @@ function validateRegister()
    }
 
 
+   if (!checkIfExist($data["user_type"], "users_types")) {
+
+      return ["errors" => ["user_type" => "User type does not exist"]];
+   }
 
    $data =
       array_diff_key($v->data(), ["confirm_password" => 0]);
 
-   $data["user_type"] = $userTypeIdVisitor;
 
    // TODO izmijeniti
    $queenId = 1;
 
-   $data["queen_id"] = $queenId;
+   if ($data["user_type"] !== 2) {
+      $data["queen_id"] = $queenId;
+
+      unset($data["partner_id"]);
+   } else {
+
+      if (!checkIfExist($data["partner_id"], "object_partner")) {
+         return ["errors" => ["partner_id" => "Partner does not exist"]];
+      }
+
+   }
 
 
 
@@ -148,7 +163,7 @@ function validateEdit()
    $v = new Validator($inputData);
 
 
-   $v->rule("required", ["user_id", "email", "role_id", "first_name", "last_name", "address", "postal_code", "region", "state", "country_id", "phone", "user_type"]);
+   $v->rule("required", ["user_id", "role_id", "first_name", "last_name", "address", "postal_code", "region", "state", "country_id", "phone", "user_type"]);
 
 
 
@@ -160,10 +175,6 @@ function validateEdit()
    if (!checkIfExist($inputData["role_id"], "users_roles")) {
       return ["errors" => ["role_id" => "Role id does not exist"]];
 
-   }
-
-   if (!checkIfExist($inputData["user_type"], "users_types")) {
-      return ["errors" => ["user_type" => "User type does not exist"]];
    }
 
 
@@ -178,7 +189,6 @@ function validateEdit()
 
    return [
       "user_id" => $inputData["user_id"] ?? "",
-      "email" => $inputData["email"] ?? "",
       "role_id" => $inputData["role_id"] ?? "",
       "first_name" => $inputData["first_name"] ?? "",
       "last_name" => $inputData["last_name"] ?? "",
@@ -195,26 +205,6 @@ function validateEdit()
 }
 
 
-function validateDelete()
-{
-
-   $inputData = decodeJson();
-   $v = new Validator($inputData);
-
-
-   $v->rule("required", ["user_id", "user_type"]);
-
-   if (!$v->validate()) {
-      return ["errors" => $v->errors()];
-   }
-
-
-   return [
-      "user_id" => $inputData["user_id"],
-      "user_type" => $inputData["user_type"],
-   ];
-
-}
 
 
 
@@ -269,27 +259,53 @@ function validateCreateAccount()
       if (!$queen) {
          return ["errors" => ["queen_id" => "Queen does not exist"]];
       }
-   }
 
+
+   }
 
    $data =
       array_diff_key($v->data(), ["confirm_password" => 0]);
 
    $data["user_type"] = $userType;
 
-   if ($userType == 4) {
+   if ($userType == 2) {
       unset($data["queen_id"]);
+   } else {
+      unset($data["partner_id"]);
+
    }
 
 
    return $data;
+}
 
 
+
+
+function validateDelete()
+{
+
+   $inputData = decodeJson();
+   $v = new Validator($inputData);
+
+
+   $v->rule("required", ["user_id", "user_type"]);
+
+   if (!$v->validate()) {
+      return ["errors" => $v->errors()];
+   }
+
+
+   return [
+      "user_id" => $inputData["user_id"],
+      "user_type" => $inputData["user_type"],
+   ];
 
 }
 
 
-function validate_send_delete_token()
+
+function validateSendDeleteTokenMail()
 {
 
 

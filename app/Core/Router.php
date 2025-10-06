@@ -82,7 +82,6 @@ class Router
                return $controllerClass->$action();
 
             } catch (Exception $e) {
-               ddd($e->getMessage());
                // $this->response->data = $e->getMessage();
                return $this->response->status = 500;
             }

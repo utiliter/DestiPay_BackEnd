@@ -19,10 +19,14 @@ class LoginController
 
    }
 
+
+   /**
+    * Login user into app
+    * Default user type : 3 - visitor
+    */
    public function login()
    {
       $data = validate_login();
-
       if (isset($data["errors"])) {
          $this->response->status = 422;
          return $this->response->data = $data;
@@ -36,17 +40,23 @@ class LoginController
       }
 
 
+      if (!$data["is_active"]) {
+         $this->response->status = 403;
+         return $this->response->data = ["errors" => ["email" => "Your account has not been verified yet."]];
+      }
+
+      $token = $this->user->handleGenerateAndInsertBearerToken($data);
+
       $this->response->status = 200;
-      return $this->response->data = $data;
+      return $this->response->data = ["user" => $data, "token" => $token];
 
    }
 
 
 
-
    public function logout()
    {
-      $this->user->invalidateUserToken();
+      $this->user->invalidateUserBearerToken();
       $this->response->status = 200;
       $this->response->data = [
          "message" => "Logged out successfully"

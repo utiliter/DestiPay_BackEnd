@@ -3,9 +3,6 @@
 $URL = "http://localhost";
 
 $db_connection = [
-
-
-
     "default" => [
         "host" => "localhost",
         "username" => "root",

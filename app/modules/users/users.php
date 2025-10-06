@@ -238,64 +238,64 @@ class Users
     /**
      *  Handle the request to login user
      */
-    function login()
-    {
-        $data = validate_login();
+    // function login()
+    // {
+    //     $data = validate_login();
 
 
 
-        if (isset($data["errors"])) {
-            $this->response->status = 422;
-            return $this->response->data = $data;
-        }
-        $tableName = $this->get_user_table_name($data["user_type"]);
+    //     if (isset($data["errors"])) {
+    //         $this->response->status = 422;
+    //         return $this->response->data = $data;
+    //     }
+    //     $tableName = $this->get_user_table_name($data["user_type"]);
 
-        $userExists = $this->userRepo->findByEmail($data['email'], $tableName);
+    //     $userExists = $this->userRepo->findByEmail($data['email'], $tableName);
 
-        if ($userExists && $userExists["password"] === bcrypt($data['password'])) {
-            // ddd($userExists);
+    //     if ($userExists && $userExists["password"] === bcrypt($data['password'])) {
+    //         // ddd($userExists);
 
-            $user = [
-                "id" => (int) $userExists["id"],
-                "first_name" => $userExists["first_name"],
-                "last_name" => $userExists["last_name"],
-                "email" => $userExists["email"],
-                "user_type" => (int) $userExists["user_type"]
-            ];
+    //         $user = [
+    //             "id" => (int) $userExists["id"],
+    //             "first_name" => $userExists["first_name"],
+    //             "last_name" => $userExists["last_name"],
+    //             "email" => $userExists["email"],
+    //             "user_type" => (int) $userExists["user_type"]
+    //         ];
 
-            $token = generateToken($user);
-
-
-            $this->insertUserToken($userExists["id"], $token, $data["user_type"]);
+    //         $token = generateToken($user);
 
 
-
-            $this->response->status = 200;
-            return $this->response->data = [
-                "user" => $user,
-                "token" => $token
-            ];
-
-        }
-
-
-        $this->response->status = 401;
-        return $this->response->data = ["errors" => ["email" => "Email or password is incorrect"]];
-    }
+    //         $this->insertUserToken($userExists["id"], $token, $data["user_type"]);
 
 
 
+    //         $this->response->status = 200;
+    //         return $this->response->data = [
+    //             "user" => $user,
+    //             "token" => $token
+    //         ];
+
+    //     }
 
 
-    function logout($token)
-    {
+    //     $this->response->status = 401;
+    //     return $this->response->data = ["errors" => ["email" => "Email or password is incorrect"]];
+    // }
 
-        $this->invalidUserToken($token);
-        $this->response->status = 200;
-        $this->response->data = [
-            "message" => "Logged out successfully"
-        ];
-    }
+
+
+
+
+    // function logout($token)
+    // {
+
+    //     $this->invalidUserToken($token);
+    //     $this->response->status = 200;
+    //     $this->response->data = [
+    //         "message" => "Logged out successfully"
+    //     ];
+    // }
 
 
     /**
@@ -565,7 +565,7 @@ class Users
 
             ];
 
-            $token = generateToken($user);
+            $token = generateBearerToken($user);
 
 
             $this->insertUserToken($this->db->insert_id, $token, $validateData["user_type"]);
@@ -699,47 +699,47 @@ class Users
      * DElete user
      * @return array|array{errors: array|bool|array{user_id: mixed, user_type: mixed}}
      */
-    function delete_account()
-    {
+    // function delete_account()
+    // {
 
-        $validatedData = validate_delete();
+    //     $validatedData = validate_delete();
 
-        if (isset($validateData["errors"])) {
-            $this->response->status = 422;
-            return $this->response->data = $validatedData;
-        }
+    //     if (isset($validateData["errors"])) {
+    //         $this->response->status = 422;
+    //         return $this->response->data = $validatedData;
+    //     }
 
 
-        $userTableName = $this->get_user_table_name((int) $validatedData["user_type"]);
+    //     $userTableName = $this->get_user_table_name((int) $validatedData["user_type"]);
 
-        $user = $this->userRepo->check_if_user_exist($validatedData["user_id"], $userTableName);
+    //     $user = $this->userRepo->check_if_user_exist($validatedData["user_id"], $userTableName);
 
-        if (!$user) {
-            $this->response->status = 404;
-            return $this->response->data = [
-            ];
-        }
+    //     if (!$user) {
+    //         $this->response->status = 404;
+    //         return $this->response->data = [
+    //         ];
+    //     }
 
-        $data = [
+    //     $data = [
 
-            "deleted_at" => date("Y-m-d H:i:s"),
-            "is_active" => 0
-        ];
+    //         "deleted_at" => date("Y-m-d H:i:s"),
+    //         "is_active" => 0
+    //     ];
 
-        $res = DBupdate($userTableName, $data, $validatedData["user_id"]);
+    //     $res = DBupdate($userTableName, $data, $validatedData["user_id"]);
 
-        if ($res) {
+    //     if ($res) {
 
-            $this->response->status = 200;
-            return $this->response->data = [
-                "message" => "User deleted successfully",
+    //         $this->response->status = 200;
+    //         return $this->response->data = [
+    //             "message" => "User deleted successfully",
 
-            ];
-        }
+    //         ];
+    //     }
 
-        $this->response->status = 500;
-        return $this->response->data = [];
-    }
+    //     $this->response->status = 500;
+    //     return $this->response->data = [];
+    // }
 
 
 

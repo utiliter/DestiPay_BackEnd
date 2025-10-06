@@ -3,7 +3,7 @@
 use Firebase\JWT\JWT;
 use Firebase\JWT\Key;
 
-function generateToken($user)
+function generateBearerToken($user)
 {
 
     $payload = [
@@ -15,7 +15,8 @@ function generateToken($user)
             'id' => $user['id'],
             'first_name' => $user['first_name'],
             'last_name' => $user['last_name'],
-            'email' => $user['email']
+            'email' => $user['email'],
+            "user_type" => $user["user_type"]
         ]
     ];
 
@@ -24,12 +25,22 @@ function generateToken($user)
 }
 
 
+function getUserDataFromBearerToken($token)
+{
+    try {
+        $decoded = JWT::decode($token, new Key(JWT_SECRET, 'HS256'));
+        return (array) $decoded->data;
+    } catch (\Exception $e) {
+        return null;
+    }
+}
+
+
 function decodeJson()
 {
     global $response;
 
     $data = json_decode(file_get_contents("php://input"), true);
-
     if (!$data) {
 
         $response->status = 400;
@@ -52,14 +63,51 @@ function verifyToken($jwt = null)
     }
 }
 //checj
+// function getBearerToken()
+// {
+
+//     $headers = apache_request_headers();
+
+
+
+
+//     if (isset($headers['Authorization'])) {
+//         $matches = [];
+//         if (preg_match('/Bearer\s(\S+)/', $headers['Authorization'], $matches)) {
+//             return $matches[1];
+//         }
+//     }
+//     return null;
+
+
+
+
+// }
+
+
+
+
+
 function getBearerToken()
 {
 
     $headers = apache_request_headers();
 
-    if (isset($headers['Authorization'])) {
+    if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+        $auth = $_SERVER['HTTP_AUTHORIZATION'];
+    } elseif (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+        $auth = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+    } elseif (!empty($headers['Authorization'])) {
+        $auth = $headers['Authorization'];
+    } else {
+        $auth = null;
+    }
+
+
+
+    if (isset($auth)) {
         $matches = [];
-        if (preg_match('/Bearer\s(\S+)/', $headers['Authorization'], $matches)) {
+        if (preg_match('/Bearer\s(\S+)/', $auth, $matches)) {
             return $matches[1];
         }
     }
@@ -433,11 +481,8 @@ function dbCreate($table, $data)
         call_user_func_array([$stmt, 'bind_param'], $refs);
     }
 
+
     return $stmt->execute();
-
-
-
-
 
 }
 function DBupdate($table, $data, $id)
@@ -545,7 +590,13 @@ function _gettype($var)
 function isBearerTokenValid($token)
 {
     global $DB;
-    return $DB->query("SELECT is_valid FROM tokens_blacklist WHERE token = '$token'")->fetch_assoc()["is_valid"];
+    $data = $DB->query("SELECT is_valid FROM users_tokens WHERE bearer_token = '$token'")->fetch_assoc();
+
+    if (!$data) {
+        return false;
+    }
+
+    return (bool) $data["is_valid"];
 }
 
 
@@ -555,4 +606,29 @@ function checkIfExist($id, $table)
     $id = (int) $id;
     $query = "SELECT id FROM $table WHERE id = $id";
     return (bool) $DB->query($query)->num_rows;
+}
+
+
+function getNowDatetime()
+{
+
+
+    $date = new DateTime();
+    return $date->format('Y-m-d H:i:s');
+}
+
+
+function authorize($condition)
+{
+    global $response;
+
+    if (!$condition) {
+        $response->status = 403;
+        $response->data = [];
+        return returnJson();
+
+
+    }
+    return true;
+
 }

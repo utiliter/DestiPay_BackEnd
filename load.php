@@ -29,7 +29,7 @@ if (!empty($_REQUEST['api_data'])) {
 
 $router = new Router();
 
-$filePath = "app/Modules/" . $data["module"] . "/routes.php";
+// $filePath = "app/Modules/" . $data["module"] . "/routes.php";
 
 
 // if (file_exists($filePath)) {
@@ -47,14 +47,13 @@ $filePath = "app/Modules/" . $data["module"] . "/routes.php";
 // }
 
 
-switch ($data["module"] ?? "DEFAULT") {
+switch (strtolower($data["module"]) ?? "DEFAULT") {
     case 'users':
-        require_once 'app/modules/' . $data["module"] . '/routes.php';
-
+        require_once 'app/modules/Users/routes.php';
         break;
 
     case 'settings':
-        require_once 'app/modules/core/settings.php';
+        require_once 'app/modules/Core/routes.php';
         break;
     default:
         $response->status = 400;
