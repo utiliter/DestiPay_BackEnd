@@ -36,7 +36,8 @@ $db_connection = [
 
 ];
 
-$mailerConfig = [
+
+$mailConfig = [
 
     "host" => "sandbox.smtp.mailtrap.io",
     "SMTPAuth" => true,
