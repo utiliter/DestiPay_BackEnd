@@ -3,6 +3,9 @@
 use App\Core\Router;
 
 session_start();
+
+date_default_timezone_set('Europe/Zagreb');
+
 $response = new stdClass();
 $response->status = 200;
 $response->data = [];
