@@ -1,6 +1,6 @@
 <?php
 
-use App\Core\Router;
+use App\Core\App;
 
 session_start();
 
@@ -29,8 +29,15 @@ if (!empty($_REQUEST['api_data'])) {
 
 }
 
+$app = new App();
+$router = $app->getRouter();
 
-$router = new Router();
+
+
+
+
+
+// $router = new Router();
 
 // $filePath = "app/Modules/" . $data["module"] . "/routes.php";
 
