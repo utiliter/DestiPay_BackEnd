@@ -24,8 +24,7 @@ function validate_login()
    $data = $v->data();
 
    $VISITOR_TYPE_ID = 3;
-   $data["user_type"] = empty($inputData["user_type"]) ? $VISITOR_TYPE_ID : (int) $inputData["user_type"];
-
+   $data["user_type"] = empty($inputData["user_type"]) ? $VISITOR_TYPE_ID : $inputData["user_type"];
 
    return $data;
 

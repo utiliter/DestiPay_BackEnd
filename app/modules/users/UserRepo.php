@@ -27,7 +27,18 @@ class UserRepo
 
    public function findByEmail($email, $table)
    {
+      if (is_array($table)) {
+         $q = [];
 
+         foreach ($table as $t) {
+
+            $q[] = "SELECT id,first_name,last_name,email,user_type,is_active, password ,NULL AS queen_id FROM  $t WHERE  email = '$email' ";
+         }
+
+         $query = implode(" UNION ", $q);
+         return $this->db->query($query)->fetch_assoc();
+
+      }
       if ($table === "users_partners") {
          return $this->db->query("SELECT id,first_name,last_name,email,user_type,is_active, password FROM $table  WHERE email = '$email'")->fetch_assoc();
       }

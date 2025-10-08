@@ -42,7 +42,7 @@ class UserService
    public function attempToLogin($data)
    {
 
-      $tableName = getUserTableName((int) $data["user_type"]);
+      $tableName = getUserTableName($data["user_type"]);
 
 
 
