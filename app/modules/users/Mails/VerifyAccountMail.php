@@ -6,26 +6,34 @@ namespace App\Modules\Users\Mails;
 use App\Core\Mailer;
 
 // class VerifyAccountMail extends Mailer
-class VerifyAccountMail
+class VerifyAccountMail extends Mailer
 {
 
-
-
-
-   public function sendMail($data)
+   public function __construct(public string $token = "", public bool $shouldQueue = true)
    {
-
-
-
-
+      parent::__construct($shouldQueue);
 
    }
 
 
-   private function emailContent($data): string
+
+
+
+   public function content()
    {
       global $URL;
 
+      return "Please verify your account, <a href=\"{$URL}/DestiPay_BackEnd/?module=users&action=verify_account&token={$this->token}\" target=\"_blank\">Verify account</a>";
+
+   }
+
+
+
+
+   private function emailContent($data): string
+   {
+
+      global $URL;
       return "
       To: {$data['email']}
       From: test@test.com
@@ -35,14 +43,14 @@ class VerifyAccountMail
 
    }
 
-   public function send($data): void
-   {
+   // public function send($data): void
+   // {
 
-      $filename = EMAIL_LOGS . "-verify mail" . "-" . date('d-m-Y-H-i-s') . ".txt";
+   //    $filename = EMAIL_LOGS . "-verify mail" . "-" . date('d-m-Y-H-i-s') . ".txt";
 
-      file_put_contents($filename, $this->emailContent($data));
+   //    file_put_contents($filename, $this->emailContent($data));
 
-   }
+   // }
 
 
 

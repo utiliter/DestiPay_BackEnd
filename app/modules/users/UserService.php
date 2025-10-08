@@ -44,7 +44,11 @@ class UserService
 
       $tableName = getUserTableName((int) $data["user_type"]);
 
+
+
       $userExists = $this->repo->findByEmail($data['email'], $tableName);
+
+
 
 
       $queenId = isset($userExists["queen_id"]) ? (int) $userExists["queen_id"] : null;
@@ -141,9 +145,16 @@ class UserService
 
 
          if ($res) {
-            $verifyMail = new VerifyAccountMail();
+            $mailData = [
+               "queen_id" => $userExists["queen_id"],
+               "email_from" => "queen@aaa.com",
+               "email_to" => $userExists["email"],
 
-            $verifyMail->send($data);
+            ];
+
+            // TODO shoudlQueue = true kada se posvi mail na serveru
+            $verifyMail = new VerifyAccountMail($data["token"], false);
+            $verifyMail->send($mailData);
             // $this->sendMail($data);
          }
       }
