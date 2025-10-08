@@ -6,6 +6,7 @@ declare(strict_types=1);
 
 namespace App\Core;
 
+use DateTime;
 use PHPMailer\PHPMailer\PHPMailer;
 
 
@@ -13,14 +14,18 @@ use PHPMailer\PHPMailer\PHPMailer;
 class Mailer
 {
    protected $mail;
+   protected $content;
 
-   public function __construct(protected Config $config)
+   public function __construct(public bool $shouldQueue = true)
    {
+
+      global $mailConfig;
+
       $this->mail = new PHPMailer(true);
 
       $this->mail->isSMTP();
 
-      $mailConfig = $config->get("MAIL");
+      // $mailConfig = $config->get("MAIL");
 
       $this->mail->Host = $mailConfig["host"];
       $this->mail->SMTPAuth = $mailConfig["SMTPAuth"];
@@ -32,32 +37,53 @@ class Mailer
 
    }
 
-
-   public function sendMail($data)
+   public function content()
    {
-      $fromAddress = $data["fromAddress"] ?? $this->config->get("MAIL")["mailFromAddress"];
-      $fromName = $data["fromName"] ?? $this->config->get("MAIL")["mailFromName"];
-      $isHtml = $data["isHTML"] ?? $this->config->get("MAIL")["isHtml"];
+   }
+   public function send($data)
+   {
 
-      $this->mail->setFrom($fromAddress, $fromName);
-      $this->mail->addAddress('test@com', 'Test Name');
+      if ($this->shouldQueue) {
 
-      $this->mail->isHTML($isHtml);
-      $this->mail->Subject = 'Your Subject Here';
-      $this->mail->Body = 'This is the plain text message body';
+         $date = new DateTime("+5minutes");
+         $sendAt = $date->format('Y-m-d H:i:s');
 
-      if (!$this->mail->send()) {
-         echo 'Message could not be sent. Mailer Error: ' . $this->mail->ErrorInfo;
+         $mailData = [
+            "queen_id" => $data["queen_id"],
+            "email_from" => $data["email_from"],
+            "email_to" => $data["email_to"],
+            "email_content" => $this->content(),
+            "send_at" => $data["send_at"] ?? $sendAt
+         ];
+
+         dbCreate("log_email_queue", $mailData);
+
       } else {
-         echo 'Message has been sent';
+         $this->sendMail($data);
       }
 
 
    }
 
 
+   public function sendMail($data)
+   {
+      // $fromAddress = $data["fromAddress"] ?? $this->config->get("MAIL")["mailFromAddress"];
+      // $fromName = $data["fromName"] ?? $this->config->get("MAIL")["mailFromName"];
+      // $isHtml = $data["isHTML"] ?? $this->config->get("MAIL")["isHtml"];
+
+      $this->mail->setFrom($data["email_from"]);
+      $this->mail->addAddress($data["email_to"]);
+
+      // $this->mail->isHTML();
+      $this->mail->isHTML(false);
+      $this->mail->Subject = 'Your Subject Here';
+      $this->mail->Body = $this->content();
+
+      return $this->mail->send();
+      // echo 'Message could not be sent. Mailer Error: ' . $this->mail->ErrorInfo
+   }
 
 
 }
-
 ?>
