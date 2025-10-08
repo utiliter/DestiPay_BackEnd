@@ -278,10 +278,9 @@ class UserController
          $res = $this->user->repo->insertVerifyToken($data, "log_users_verify_delete_tokens");
 
          if ($res) {
-            $mailer = new VerifyDeleteMail();
+            // TODO stavit u queue kad se postavi mail na serveru
+            $mailer = new VerifyDeleteMail($data["token"], false);
             $mailer->send($data);
-
-
 
             $this->response->status = 200;
             return $this->response->data = [
