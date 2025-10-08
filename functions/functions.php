@@ -41,9 +41,12 @@ function decodeJson()
     global $response;
 
     $data = json_decode(file_get_contents("php://input"), true);
-    if (!$data) {
 
+    if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
         $response->status = 400;
+        $response->data = [
+            "error" => "Invalid JSON data"
+        ];
         returnJson();
     }
     return $data;
