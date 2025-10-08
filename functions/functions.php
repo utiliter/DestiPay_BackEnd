@@ -7,8 +7,8 @@ function generateBearerToken($user)
 {
 
     $payload = [
-        'iss' => 'tvoj-domen.com',
-        'aud' => 'tvoj-domen.com',
+        'iss' => 'dev.greendestipay.com',
+        'aud' => 'dev.greendestipay.com',
         'iat' => time(),
         'exp' => time() + 3600,        // 1h
         'data' => [
