@@ -15,11 +15,14 @@ class Mailer
 {
    protected $mail;
    protected $content;
+   protected $mailConfig;
 
-   public function __construct(public bool $shouldQueue = true)
+   public function __construct(public $queenId, public bool $shouldQueue = true)
    {
 
-      global $mailConfig;
+      global $mailConfig, $DB;
+
+      $this->mailConfig = $DB->query("SELECT smtp_from_name , smtp_from_email, smtp_port,smtp_encryption,smtp_host,smtp_username,smtp_password FROM object_queen_settings WHERE queen_id = $queenId")->fetch_assoc();
 
       $this->mail = new PHPMailer(true);
 
@@ -27,13 +30,14 @@ class Mailer
 
       // $mailConfig = $config->get("MAIL");
 
-      $this->mail->Host = $mailConfig["host"];
-      $this->mail->SMTPAuth = $mailConfig["SMTPAuth"];
-      $this->mail->Username = $mailConfig["username"];
-      $this->mail->Password = $mailConfig["password"];
-      $this->mail->SMTPSecure = $mailConfig["SMTPsecure"];
-      $this->mail->Port = $mailConfig["port"];
-
+      $this->mail->Host = $this->mailConfig["smtp_host"];
+      // $this->mail->SMTPAuth = $this->mailConfig["SMTPAuth"];
+      $this->mail->SMTPAuth = true;
+      $this->mail->Username = $this->mailConfig["smtp_username"];
+      $this->mail->Password = $this->mailConfig["smtp_password"];
+      $this->mail->SMTPSecure = $this->mailConfig["smtp_encryption"];
+      // $this->mail->SMTPSecure = "ssl";
+      $this->mail->Port = $this->mailConfig["smtp_port"];
 
    }
 
@@ -80,7 +84,15 @@ class Mailer
       $this->mail->Subject = 'Your Subject Here';
       $this->mail->Body = $this->content();
 
-      return $this->mail->send();
+      // return $this->mail->send();
+
+
+      if (!$this->mail->send()) {
+         echo 'Message could not be sent.';
+         echo 'Mailer Error: ' . $this->mail->ErrorInfo;
+      } else {
+         echo 'Message has been sent';
+      }
       // echo 'Message could not be sent. Mailer Error: ' . $this->mail->ErrorInfo
    }
 

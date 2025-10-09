@@ -153,7 +153,7 @@ class UserService
             ];
 
             // TODO shoudlQueue = true kada se posvi mail na serveru
-            $verifyMail = new VerifyAccountMail($data["token"], false);
+            $verifyMail = new VerifyAccountMail($userExists["queen_id"], $data["token"], false);
             $verifyMail->send($mailData);
             // $this->sendMail($data);
          }
