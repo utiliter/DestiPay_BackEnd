@@ -66,7 +66,7 @@ class RegisterController
 
 
       $validateData["password"] = bcrypt($validateData["password"]);
-      $validateData["uuid"] = create_guid();
+      $validateData["guid"] = create_guid();
       $validateData["is_active"] = 1;
       $res = dbCreate($userTableName, $validateData);
 

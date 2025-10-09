@@ -83,7 +83,7 @@ class UserController
       }
 
       $validateData["password"] = bcrypt($validateData["password"]);
-      $validateData["uuid"] = create_guid();
+      $validateData["guid"] = create_guid();
 
       $res = dbCreate($userTableName, $validateData);
 
