@@ -40,7 +40,9 @@ class UserRepo
 
       }
       if ($table === "users_partners") {
-         return $this->db->query("SELECT id,first_name,last_name,email,user_type,is_active, password FROM $table  WHERE email = '$email'")->fetch_assoc();
+         return $this->db->query("SELECT up.id,up.first_name,up.last_name,up.email,up.user_type,up.is_active, up.password , op.queen_id as queen_id FROM $table up
+         INNER JOIN object_partner op ON op.id = up.partner_id
+          WHERE email = '$email'")->fetch_assoc();
       }
 
       return $this->db->query("SELECT id,first_name,last_name,email,user_type,is_active,queen_id, password FROM $table  WHERE email = '$email'")->fetch_assoc();
@@ -110,6 +112,7 @@ class UserRepo
       return dbCreate($table, $data);
 
    }
+
 
 }
 

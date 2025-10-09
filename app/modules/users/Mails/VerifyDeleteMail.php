@@ -6,11 +6,10 @@ namespace App\Modules\Users\Mails;
 use App\Core\Mailer;
 
 class VerifyDeleteMail extends Mailer
-   // class VerifyDeleteMail extends Mailer
 {
-   public function __construct(public string $token = "", public bool $shouldQueue = true)
+   public function __construct(public $queenId, public string $token = "", public bool $shouldQueue = true)
    {
-      parent::__construct($shouldQueue);
+      parent::__construct($queenId, $shouldQueue);
 
    }
 
