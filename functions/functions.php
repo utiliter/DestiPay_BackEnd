@@ -38,9 +38,10 @@ function getUserDataFromBearerToken($token)
 
 function decodeJson()
 {
-    global $response;
+    global $response, $logResponse;
 
     $data = json_decode(file_get_contents("php://input"), true);
+    // $logResponse->requestData = $data;
 
     if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
         $response->status = 400;
@@ -147,10 +148,27 @@ function getBearerToken()
 
 function returnJson()
 {
-    global $DB, $response;
+    global $DB, $response, $logResponse;
     $response->message = error($response->status);
     header('Content-Type: application/json; charset=utf-8');
     http_response_code($response->status ?? 500);
+    // ddd(json_encode($response));
+    // ddd(json_encode($response));
+    $responseLogData = [
+        "operation_id" => $logResponse->operationId,
+        "user_type" => $logResponse->user_type ?? 0,
+        "operation_data" => json_encode($response),
+        "ip_address" => $_SERVER['REMOTE_ADDR'],
+        "device_data" => "",
+        "user_id" => $logResponse->user_id ?? 0,
+        "log_operation_type" => 1,
+        "log_id" => $logResponse->logId,
+    ];
+
+    $logRes = logOperation($responseLogData);
+
+
+
     echo json_encode($response, JSON_UNESCAPED_UNICODE);
     $DB->close();
     exit();
@@ -633,5 +651,29 @@ function authorize($condition)
 
     }
     return true;
+
+}
+function logOperation($data)
+{
+
+    global $DB;
+    $data = [
+        "operation_id" => $data["operation_id"],
+        "user_type" => $data["user_type"],
+        "operation_data" => $data["operation_data"],
+        "ip_address" => $_SERVER['REMOTE_ADDR'],
+        "device_data" => "",
+        "user_id" => $data["user_id"],
+        "log_operation_type" => $data["log_operation_type"],
+        "log_id" => $data["log_id"] ?? 0
+    ];
+
+    $res = dbCreate("log_operations", $data);
+
+    if ($res) {
+        return $DB->insert_id;
+    } else {
+        return 0;
+    }
 
 }
