@@ -1,0 +1,20 @@
+<?php 
+ return array (
+  'user_password_reset' => '1',
+  'user_deactivation' => '2',
+  'user_deletion' => '3',
+  'user_activation' => '4',
+  'user_registration' => '5',
+  'user_login' => '6',
+  'not_loged_user' => '7',
+  'user_change_password' => '8',
+  'user_edit' => '9',
+  'user_roles_get' => '10',
+  'user_types_get' => '11',
+  'user_list' => '12',
+  'user_send_delete_token' => '13',
+  'user_logout' => '14',
+  'user_verify_account' => '15',
+  'user_create' => '16',
+  'settings_get_language' => '17',
+);
