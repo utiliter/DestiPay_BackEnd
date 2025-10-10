@@ -48,6 +48,8 @@ class UserController
    {
       authorize(checkPermission(UserPermissions::CREATE, $this->authUser["role_id"]));
 
+
+
       $validateData = validateCreateAccount();
 
       if (isset($validateData["errors"])) {
@@ -277,9 +279,7 @@ class UserController
 
 
       $userTableName = getUserTableName((int) $validatedData["user_type"]);
-
       $userExists = $this->user->repo->findByEmail($validatedData["email"], $userTableName);
-
       if ($userExists) {
          $this->user->repo->deactivateAllVerifyTokens($userExists["email"], $userExists["user_type"], "log_users_verify_delete_tokens");
 
@@ -289,11 +289,16 @@ class UserController
 
          if ($res) {
 
+            $mailData = [
+               "queen_id" => $userExists["queen_id"],
+               "email_from" => "queen@aaa.com",
+               "email_to" => $userExists["email"],
 
+            ];
 
             // TODO stavit u queue kad se postavi mail na serveru
             $mailer = new VerifyDeleteMail($userExists["queen_id"], $data["token"], false);
-            $mailer->send($data);
+            $mailer->send($mailData);
 
 
             $this->response->status = 200;
@@ -321,6 +326,7 @@ class UserController
    public function delete_account()
    {
       $token = $_GET["token"] ?? null;
+
 
       if (!$token) {
          $this->response->status = 400;

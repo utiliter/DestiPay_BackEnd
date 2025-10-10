@@ -87,12 +87,7 @@ class Mailer
       // return $this->mail->send();
 
 
-      if (!$this->mail->send()) {
-         echo 'Message could not be sent.';
-         echo 'Mailer Error: ' . $this->mail->ErrorInfo;
-      } else {
-         echo 'Message has been sent';
-      }
+      !$this->mail->send();
       // echo 'Message could not be sent. Mailer Error: ' . $this->mail->ErrorInfo
    }
 
