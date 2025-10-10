@@ -5,10 +5,10 @@ namespace App\Core\Enums;
 
 enum UserPermissions: string
 {
-   case VIEW = "user_view";
-   case CREATE = "user_create";
-   case EDIT = "user_edit";
-   case DELETE = "user_delete";
+   case VIEW = "users_view";
+   case CREATE = "users_create";
+   case EDIT = "users_edit";
+   case DELETE = "users_delete";
 
 
 }
