@@ -18,7 +18,7 @@ class VerifyDeleteMail extends Mailer
    {
       global $URL;
 
-      return "Please verify your account, <a href=\"{$URL}/DestiPay_BackEnd/?module=users&action=verify_account&token={$this->token}\" target=\"_blank\">Verify account</a>";
+      return "Please verify delete, <a href=\"{$URL}/DestiPay_BackEnd/?module=users&action=delete_account&token={$this->token}\" target=\"_blank\">Verify delete</a>";
 
    }
 
