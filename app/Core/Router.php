@@ -119,11 +119,12 @@ class Router
                }
 
                if (!method_exists($controllerClass, $action)) {
-                  throw new \Exception("Method $action does not exist in controller $controllerClass");
+                  throw new \Exception("Method $action does not exist in controller {$route['controller']}");
                }
 
-               // return call_user_func([$controllerClass, $action]);
+
                return $controllerClass->$action();
+
 
             }
             //  catch (\mysqli_sql_exception $e) {
