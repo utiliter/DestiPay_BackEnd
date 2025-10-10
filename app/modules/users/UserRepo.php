@@ -27,25 +27,40 @@ class UserRepo
 
    public function findByEmail($email, $table)
    {
+
+      // ddd($this->db->query("select * from object_partner")->fetch_assoc());
       if (is_array($table)) {
          $q = [];
 
          foreach ($table as $t) {
 
-            $q[] = "SELECT id,first_name,last_name,email,user_type,is_active, password ,NULL AS queen_id FROM  $t WHERE  email = '$email' ";
+            if ($t === "users_partners") {
+               $q[] = "SELECT up.id,up.first_name,up.last_name,up.email,up.user_type,up.is_active, up.password , op.queen_id,up.role_id  FROM $t up
+         INNER JOIN object_partner op ON op.id = up.partner_id
+          WHERE email = '$email'";
+
+            } elseif ($t === "users_system") {
+
+               $q[] = "SELECT id,first_name,last_name,email,user_type,is_active, role_id,password , NULL AS queen_id FROM  $t WHERE  email = '$email' ";
+
+            } else {
+
+               $q[] = "SELECT id,first_name,last_name,email,user_type,is_active, role_id,password ,queen_id FROM  $t WHERE  email = '$email' ";
+            }
          }
 
          $query = implode(" UNION ", $q);
          return $this->db->query($query)->fetch_assoc();
 
       }
+
       if ($table === "users_partners") {
-         return $this->db->query("SELECT up.id,up.first_name,up.last_name,up.email,up.user_type,up.is_active, up.password , op.queen_id as queen_id FROM $table up
+         return $this->db->query("SELECT up.id,up.first_name,up.last_name,up.email,up.user_type,up.is_active, up.password , op.queen_id ,up.role_id FROM $table up
          INNER JOIN object_partner op ON op.id = up.partner_id
           WHERE email = '$email'")->fetch_assoc();
       }
 
-      return $this->db->query("SELECT id,first_name,last_name,email,user_type,is_active,queen_id, password FROM $table  WHERE email = '$email'")->fetch_assoc();
+      return $this->db->query("SELECT id,first_name,last_name,email,user_type,is_active,queen_id, password,role_id FROM $table  WHERE email = '$email'")->fetch_assoc();
 
    }
 
@@ -67,7 +82,10 @@ class UserRepo
 
    function checkIfUserExists($email, $table)
    {
-      return (bool) $this->db->query("SELECT id FROM $table WHERE email = '$email' AND is_active = 1 AND deleted_at IS NULL")->num_rows;
+
+
+
+      return $this->db->query("SELECT id FROM $table WHERE email = '$email' AND is_active = 1 AND deleted_at IS NULL")->num_rows;
    }
 
 
@@ -113,6 +131,16 @@ class UserRepo
 
    }
 
+
+   public function getUserRolePermissions($roleId)
+   {
+      $query = "SELECT rp.permission_id , p.name FROM users_roles_permissions rp INNER JOIN users_permissions p ON p.id = rp.permission_id WHERE rp.role_id = $roleId";
+
+
+      return $this->db->query($query)->fetch_all(MYSQLI_ASSOC);
+
+
+   }
 
 }
 

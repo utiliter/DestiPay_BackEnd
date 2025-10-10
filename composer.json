@@ -5,7 +5,8 @@
     },
     "files": [
       "app/modules/Users/validations.php",
-      "app/modules/Users/functions.php"
+      "app/modules/Users/functions.php",
+      "app/modules/Roles/validators.php"
     ]
   },
   "require": {

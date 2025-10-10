@@ -45,15 +45,12 @@ class UserService
       $tableName = getUserTableName($data["user_type"]);
 
 
-
       $userExists = $this->repo->findByEmail($data['email'], $tableName);
 
-
-
-
       $queenId = isset($userExists["queen_id"]) ? (int) $userExists["queen_id"] : null;
-
       if ($userExists && $userExists["password"] === bcrypt($data['password'])) {
+
+         $permissions = $this->repo->getUserRolePermissions($userExists["role_id"]);
 
          $user = [
             "id" => (int) $userExists["id"],
@@ -62,6 +59,8 @@ class UserService
             "email" => $userExists["email"],
             "is_active" => (int) $userExists["is_active"],
             "user_type" => (int) $userExists["user_type"],
+            "role_id" => (int) $userExists["role_id"],
+            "permissions" => $permissions
 
          ];
 
@@ -70,7 +69,6 @@ class UserService
          }
 
          return $user;
-
       }
 
       return null;
@@ -90,7 +88,6 @@ class UserService
 
       //todo partner table queen id??
       $queenId = $user["queen_id"] ?? null;
-
       if ($tokenExist) {
          $this->updateUserBearerToken($tokenExist["id"], $token);
       } else {
