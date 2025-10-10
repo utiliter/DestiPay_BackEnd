@@ -16,9 +16,16 @@ function generateBearerToken($user)
             'first_name' => $user['first_name'],
             'last_name' => $user['last_name'],
             'email' => $user['email'],
-            "user_type" => $user["user_type"]
+            "user_type" => $user["user_type"],
+            "role_id" => $user["role_id"],
         ]
     ];
+
+    if (isset($user["queen_id"])) {
+
+
+        $payload["data"]["queen_id"] = $user["queen_id"];
+    }
 
     $jwt = JWT::encode($payload, JWT_SECRET, 'HS256');
     return $jwt;
@@ -27,6 +34,11 @@ function generateBearerToken($user)
 
 function getUserDataFromBearerToken($token)
 {
+
+    if ($token === null) {
+        return returnJson();
+    }
+
     try {
         $decoded = JWT::decode($token, new Key(JWT_SECRET, 'HS256'));
         return (array) $decoded->data;
@@ -34,6 +46,29 @@ function getUserDataFromBearerToken($token)
         return null;
     }
 }
+
+
+function getAuthUserPermissions($roleId)
+{
+    global $DB;
+    $query = "SELECT p.name  FROM users_roles_permissions rp INNER JOIN users_permissions p ON p.id = rp.permission_id WHERE rp.role_id = $roleId";
+
+
+    $res = $DB->query($query)->fetch_all(MYSQLI_ASSOC);
+    return array_column($res, 'name');
+
+
+
+}
+// function authorize($condition)
+// {
+//     global $response;
+//     if (!$condition) {
+//         $response->status = 403;
+//         return $this->response->data = [];
+//     }
+//     return true;
+// }
 
 
 function decodeJson()
@@ -155,14 +190,14 @@ function returnJson()
     // ddd(json_encode($response));
     // ddd(json_encode($response));
     $responseLogData = [
-        "operation_id" => $logResponse->operationId,
+        "operation_id" => $logResponse->operationId ?? null,
         "user_type" => $logResponse->user_type ?? 0,
         "operation_data" => json_encode($response),
         "ip_address" => $_SERVER['REMOTE_ADDR'],
         "device_data" => "",
         "user_id" => $logResponse->user_id ?? 0,
         "log_operation_type" => 1,
-        "log_id" => $logResponse->logId,
+        "log_id" => $logResponse->logId ?? 0,
     ];
 
     $logRes = logOperation($responseLogData);
@@ -630,6 +665,31 @@ function checkIfExist($id, $table)
 }
 
 
+
+
+function customCheckIfExist($query)
+{
+    global $DB;
+    return (bool) $DB->query($query)->num_rows;
+}
+
+
+function validatePermissions($permissionIds)
+{
+
+    global $DB;
+    $ids = implode(',', array_map('intval', $permissionIds));
+
+
+    $res = $DB->query("SELECT id FROM users_permissions WHERE id IN ($ids)")->fetch_all(MYSQLI_ASSOC);
+
+    return array_column($res, "id");
+
+
+}
+
+
+
 function getNowDatetime()
 {
 
@@ -653,6 +713,37 @@ function authorize($condition)
     return true;
 
 }
+
+
+function checkPermission($perm, $roleId)
+{
+    // $superAdminRoleId = 1;
+    // if ((int) $roleId === $superAdminRoleId) {
+    //     return true;
+    // }
+
+
+    $userPermissions = getAuthUserPermissions($roleId);
+    if (!in_array($perm->value, $userPermissions)) {
+        return false;
+
+    }
+
+    return true;
+}
+
+
+function checkIfRoleIsAssignedToAnyUser($roleId)
+{
+    global $DB;
+
+    $q = "SELECT id from users_queen where role_id = $roleId UNION SELECT id FROM users_partners WHERE role_id = $roleId";
+
+    return $DB->query($q)->fetch_all(MYSQLI_ASSOC);
+
+
+}
+
 function logOperation($data)
 {
 
