@@ -12,10 +12,19 @@ function validate_login()
 
    $v = new Validator($inputData);
 
-   $v->rule("required", ["email", "password"]);
 
-   $v->rule("lengthMin", "password", 6);
+   $v->rule("required", ["email", "password", "device_id", "mobile_type"]);
+
+
    $v->rule("email", "email");
+   $v->rule("lengthMin", "password", 6);
+
+   $v->rule('in', 'mobile_type', [0, 1, 2]);
+
+
+   if (!empty($inputData["mobile_type"] && $inputData["mobile_type"] !== 0)) {
+      $v->rule("required", ["fcm_token"]);
+   }
 
    if (!$v->validate()) {
       return ["errors" => $v->errors()];
