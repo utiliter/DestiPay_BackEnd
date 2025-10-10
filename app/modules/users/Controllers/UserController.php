@@ -1,6 +1,7 @@
 <?php
 namespace App\Modules\Users\Controllers;
 
+use App\Core\Enums\UserPermissions;
 use App\Modules\Users\Mails\VerifyDeleteMail;
 use App\Modules\Users\UserService;
 
@@ -18,7 +19,7 @@ class UserController
    public $db;
    public $response;
    public $token;
-
+   public $authUser;
    public function __construct(private UserService $user)
    {
       global $DB, $response;
@@ -28,6 +29,7 @@ class UserController
 
       $this->token = getBearerToken();
 
+      $this->authUser = getUserDataFromBearerToken($this->token);
    }
 
 
@@ -44,14 +46,14 @@ class UserController
     */
    function create_account()
    {
+      checkPermission(UserPermissions::CREATE, $this->authUser["role_id"]);
+
       $validateData = validateCreateAccount();
 
       if (isset($validateData["errors"])) {
          $this->response->status = 422;
          return $this->response->data = $validateData;
       }
-
-
 
       if (isset($validateData["partner_id"])) {
          $partner = $this->user->repo->checkIfExist($validateData["partner_id"], "object_partner");
@@ -182,11 +184,9 @@ class UserController
     */
    function edit_account()
    {
-      // todo authorize queen
-      $currentUser = getUserDataFromBearerToken($this->token);
       $validateData = validateEdit();
 
-      authorize((int) $currentUser["id"] === (int) $validateData["user_id"] && (int) $currentUser["user_type"] === $validateData["user_type"]);
+      authorize((int) $this->authUser["id"] === (int) $validateData["user_id"] && (int) $this->authUser["user_type"] === $validateData["user_type"] || checkPermission(UserPermissions::EDIT, $this->authUser["role_id"]));
 
 
       if (isset($validateData["errors"])) {
@@ -194,10 +194,10 @@ class UserController
          return $this->response->data = $validateData;
       }
 
-      $userTableName = getUserTableName((int) $currentUser["user_type"]);
+      $userTableName = getUserTableName((int) $this->authUser["user_type"]);
 
 
-      $user = $this->user->repo->checkIfUserExists($currentUser["email"], $userTableName);
+      $user = $this->user->repo->findByEmail($this->authUser["email"], $userTableName);
 
 
       if (!$user) {
@@ -205,6 +205,8 @@ class UserController
          return $this->response->data = [
          ];
       }
+
+      authorize((int) $user["queen_id"] === $this->authUser["queen_id"]);
 
       // if (isset($validateData["partner_id"])) {
       //    $partner = checkIfExist($validateData["partner_id"], "object_partner");
@@ -224,11 +226,11 @@ class UserController
       if ($res) {
 
          $user = [
-            "id" => $currentUser["id"],
+            "id" => $this->authUser["id"],
             "first_name" => $validateData["first_name"],
             "last_name" => $validateData["last_name"],
-            "email" => $currentUser["email"],
-            "user_type" => $currentUser["user_type"]
+            "email" => $this->authUser["email"],
+            "user_type" => $this->authUser["user_type"]
 
          ];
 
@@ -269,8 +271,6 @@ class UserController
       $userExists = $this->user->repo->findByEmail($validatedData["email"], $userTableName);
 
       if ($userExists) {
-
-
          $this->user->repo->deactivateAllVerifyTokens($userExists["email"], $userExists["user_type"], "log_users_verify_delete_tokens");
 
          $data = $this->user->generateVerifyToken($userExists["email"], $userExists["user_type"]);

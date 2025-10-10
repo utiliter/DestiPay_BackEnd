@@ -17,7 +17,7 @@ $router->post(UserController::class, "change_password", "user_change_password", 
 
 $router->post(UserController::class, "edit_account", "user_edit", true);
 
-$router->post(UserController::class, "create_account", "user_create", false);
+$router->post(UserController::class, "create_account", "user_create", true);
 
 $router->get(UserController::class, "delete_account", "user_deletion", false);
 $router->get(UserController::class, "send_verify_delete_token", "user_send_delete_token", true);
