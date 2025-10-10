@@ -17,4 +17,5 @@
   'user_verify_account' => '15',
   'user_create' => '16',
   'settings_get_language' => '17',
+  'user_create_custom_role' => '18',
 );

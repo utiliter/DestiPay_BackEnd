@@ -92,6 +92,10 @@ switch (strtolower($data["module"]) ?? "DEFAULT") {
     case 'settings':
         require_once 'app/modules/Core/routes.php';
         break;
+    case 'roles':
+        require_once 'app/modules/Roles/routes.php';
+        break;
+
     default:
         $response->status = 400;
         returnJson();
