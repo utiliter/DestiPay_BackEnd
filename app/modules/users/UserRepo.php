@@ -35,7 +35,7 @@ class UserRepo
          foreach ($table as $t) {
 
             if ($t === "users_partners") {
-               $q[] = "SELECT up.id,up.first_name,up.last_name,up.email,up.user_type,up.is_active, up.password , op.queen_id,up.role_id  FROM $t up
+               $q[] = "SELECT up.id,up.first_name,up.last_name,up.email,up.user_type,up.is_active,up.role_id , up.password , op.queen_id FROM $t up
          INNER JOIN object_partner op ON op.id = up.partner_id
           WHERE email = '$email'";
 
