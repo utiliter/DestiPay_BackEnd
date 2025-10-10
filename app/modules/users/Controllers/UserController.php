@@ -46,7 +46,7 @@ class UserController
     */
    function create_account()
    {
-      checkPermission(UserPermissions::CREATE, $this->authUser["role_id"]);
+      authorize(checkPermission(UserPermissions::CREATE, $this->authUser["role_id"]));
 
       $validateData = validateCreateAccount();
 
@@ -129,17 +129,19 @@ class UserController
     */
    public function change_password()
    {
+
+
       $currentUser = getUserDataFromBearerToken($this->token);
 
       $data = validateChangePassword();
 
-      authorize((int) $currentUser["id"] === (int) $data["user_id"] && (int) $currentUser["user_type"] === $data["user_type"]);
 
       if (isset($data["errors"])) {
          $this->response->status = 422;
          return $this->response->data = $data;
       }
 
+      authorize((int) $currentUser["id"] === (int) $data["user_id"] && (int) $currentUser["user_type"] === $data["user_type"]);
 
       $userTableName = getUserTableName((int) $currentUser["user_type"]);
 
@@ -186,7 +188,15 @@ class UserController
    {
       $validateData = validateEdit();
 
-      authorize((int) $this->authUser["id"] === (int) $validateData["user_id"] && (int) $this->authUser["user_type"] === $validateData["user_type"] || checkPermission(UserPermissions::EDIT, $this->authUser["role_id"]));
+      $isSuperAdmin = $this->authUser["user_type"] === 5;
+
+
+      $canEdit = ((int) $this->authUser["id"] === (int) $validateData["user_id"]
+         && (int) $this->authUser["user_type"] === (int) $validateData["user_type"])
+         || checkPermission(UserPermissions::EDIT, $this->authUser["role_id"]);
+
+      authorize($isSuperAdmin || $canEdit);
+
 
 
       if (isset($validateData["errors"])) {
